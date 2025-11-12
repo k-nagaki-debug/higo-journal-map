@@ -1,6 +1,8 @@
 let map;
 let markers = [];
 let currentFacilityMarker = null;
+let allFacilities = [];
+let filteredFacilities = [];
 
 // Initialize Leaflet Map
 async function initMap() {
@@ -22,10 +24,67 @@ async function initMap() {
 
     // Load existing facilities and center map
     await loadFacilities();
+    
+    // Setup search and filter listeners
+    setupSearchAndFilter();
 }
 
 // Initialize map when page loads
 document.addEventListener('DOMContentLoaded', initMap);
+
+// Setup search and filter event listeners
+function setupSearchAndFilter() {
+    const searchInput = document.getElementById('map-search-input');
+    const categoryFilter = document.getElementById('map-category-filter');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+    
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', applyFilters);
+    }
+}
+
+// Apply search and filter
+function applyFilters() {
+    const searchTerm = document.getElementById('map-search-input')?.value.toLowerCase() || '';
+    const selectedCategory = document.getElementById('map-category-filter')?.value || '';
+    
+    filteredFacilities = allFacilities.filter(facility => {
+        const matchesSearch = !searchTerm || 
+            facility.name.toLowerCase().includes(searchTerm) ||
+            (facility.description && facility.description.toLowerCase().includes(searchTerm)) ||
+            (facility.address && facility.address.toLowerCase().includes(searchTerm));
+        
+        const matchesCategory = !selectedCategory || facility.category === selectedCategory;
+        
+        return matchesSearch && matchesCategory;
+    });
+    
+    // Update markers on map
+    updateMarkers();
+    
+    // Update facility list
+    displayFacilityList(filteredFacilities);
+}
+
+// Update markers based on filtered facilities
+function updateMarkers() {
+    // Clear existing markers
+    markers.forEach(marker => map.removeLayer(marker));
+    markers = [];
+    
+    // Add markers for filtered facilities
+    filteredFacilities.forEach(facility => {
+        addMarker(facility);
+    });
+    
+    // Center map on filtered facilities if any exist
+    if (filteredFacilities.length > 0) {
+        centerMapOnFacilities(filteredFacilities);
+    }
+}
 
 // Show facility form when map is clicked
 function showFacilityForm(latLng, facilityData = null) {
@@ -181,23 +240,24 @@ async function loadFacilities() {
         const response = await axios.get('/api/facilities');
         
         if (response.data.success) {
-            const facilities = response.data.data;
+            allFacilities = response.data.data;
+            filteredFacilities = [...allFacilities];
             
             // Clear existing markers
             markers.forEach(marker => map.removeLayer(marker));
             markers = [];
             
             // Add markers for each facility
-            facilities.forEach(facility => {
+            filteredFacilities.forEach(facility => {
                 addMarker(facility);
             });
             
             // Update facility list
-            displayFacilityList(facilities);
+            displayFacilityList(filteredFacilities);
             
             // Center map on facilities if any exist
-            if (facilities.length > 0) {
-                centerMapOnFacilities(facilities);
+            if (filteredFacilities.length > 0) {
+                centerMapOnFacilities(filteredFacilities);
             }
         }
     } catch (error) {
