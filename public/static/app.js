@@ -2,27 +2,30 @@ let map;
 let markers = [];
 let currentFacilityMarker = null;
 
-// Initialize Google Map
+// Initialize Leaflet Map
 async function initMap() {
     // Default center: Tokyo
-    const center = { lat: 35.6812, lng: 139.7671 };
+    const center = [35.6812, 139.7671];
     
-    map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 12,
-        center: center,
-        mapTypeControl: true,
-        streetViewControl: true,
-        fullscreenControl: true,
-    });
+    map = L.map('map').setView(center, 12);
+    
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
 
     // Add click listener to map
-    map.addListener('click', (event) => {
-        showFacilityForm(event.latLng);
+    map.on('click', (event) => {
+        showFacilityForm(event.latlng);
     });
 
     // Load existing facilities and center map
     await loadFacilities();
 }
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', initMap);
 
 // Show facility form when map is clicked
 function showFacilityForm(latLng, facilityData = null) {
@@ -59,21 +62,24 @@ function showFacilityForm(latLng, facilityData = null) {
     } else {
         // Create mode
         modalTitle.textContent = '新規施設登録';
-        document.getElementById('facility-lat').value = latLng.lat();
-        document.getElementById('facility-lng').value = latLng.lng();
+        document.getElementById('facility-lat').value = latLng.lat;
+        document.getElementById('facility-lng').value = latLng.lng;
         
         // Show temporary marker
         if (currentFacilityMarker) {
-            currentFacilityMarker.setMap(null);
+            map.removeLayer(currentFacilityMarker);
         }
-        currentFacilityMarker = new google.maps.Marker({
-            position: latLng,
-            map: map,
-            icon: {
-                url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-            },
-            animation: google.maps.Animation.DROP
+        
+        const blueIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
         });
+        
+        currentFacilityMarker = L.marker([latLng.lat, latLng.lng], { icon: blueIcon }).addTo(map);
     }
     
     modal.classList.remove('hidden');
@@ -86,25 +92,23 @@ function closeModal() {
     
     // Remove temporary marker
     if (currentFacilityMarker) {
-        currentFacilityMarker.setMap(null);
+        map.removeLayer(currentFacilityMarker);
         currentFacilityMarker = null;
     }
 }
 
 // Handle image file selection
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('facility-image').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        // Show preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById('preview-img').src = e.target.result;
-            document.getElementById('image-preview').classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-    });
+document.getElementById('facility-image').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('preview-img').src = e.target.result;
+        document.getElementById('image-preview').classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
 });
 
 // Remove image
@@ -115,62 +119,60 @@ function removeImage() {
 }
 
 // Handle form submission
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('facility-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const facilityId = document.getElementById('facility-id').value;
-        const imageFile = document.getElementById('facility-image').files[0];
-        let imageUrl = document.getElementById('facility-image-url').value;
-        
-        try {
-            // Upload image if a new file is selected
-            if (imageFile) {
-                const formData = new FormData();
-                formData.append('image', imageFile);
-                
-                const uploadResponse = await axios.post('/api/upload-image', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-                
-                if (uploadResponse.data.success) {
-                    imageUrl = uploadResponse.data.data.imageUrl;
+document.getElementById('facility-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const facilityId = document.getElementById('facility-id').value;
+    const imageFile = document.getElementById('facility-image').files[0];
+    let imageUrl = document.getElementById('facility-image-url').value;
+    
+    try {
+        // Upload image if a new file is selected
+        if (imageFile) {
+            const formData = new FormData();
+            formData.append('image', imageFile);
+            
+            const uploadResponse = await axios.post('/api/upload-image', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
                 }
-            }
+            });
             
-            const facilityData = {
-                name: document.getElementById('facility-name').value,
-                category: document.getElementById('facility-category').value,
-                description: document.getElementById('facility-description').value,
-                address: document.getElementById('facility-address').value,
-                phone: document.getElementById('facility-phone').value,
-                website: document.getElementById('facility-website').value,
-                latitude: parseFloat(document.getElementById('facility-lat').value),
-                longitude: parseFloat(document.getElementById('facility-lng').value),
-                image_url: imageUrl || null
-            };
-            
-            let response;
-            if (facilityId) {
-                // Update existing facility
-                response = await axios.put(`/api/facilities/${facilityId}`, facilityData);
-            } else {
-                // Create new facility
-                response = await axios.post('/api/facilities', facilityData);
+            if (uploadResponse.data.success) {
+                imageUrl = uploadResponse.data.data.imageUrl;
             }
-            
-            if (response.data.success) {
-                closeModal();
-                await loadFacilities();
-                alert(facilityId ? '施設情報を更新しました' : '施設を登録しました');
-            }
-        } catch (error) {
-            console.error('Error saving facility:', error);
-            alert('施設の保存に失敗しました');
         }
-    });
+        
+        const facilityData = {
+            name: document.getElementById('facility-name').value,
+            category: document.getElementById('facility-category').value,
+            description: document.getElementById('facility-description').value,
+            address: document.getElementById('facility-address').value,
+            phone: document.getElementById('facility-phone').value,
+            website: document.getElementById('facility-website').value,
+            latitude: parseFloat(document.getElementById('facility-lat').value),
+            longitude: parseFloat(document.getElementById('facility-lng').value),
+            image_url: imageUrl || null
+        };
+        
+        let response;
+        if (facilityId) {
+            // Update existing facility
+            response = await axios.put(`/api/facilities/${facilityId}`, facilityData);
+        } else {
+            // Create new facility
+            response = await axios.post('/api/facilities', facilityData);
+        }
+        
+        if (response.data.success) {
+            closeModal();
+            await loadFacilities();
+            alert(facilityId ? '施設情報を更新しました' : '施設を登録しました');
+        }
+    } catch (error) {
+        console.error('Error saving facility:', error);
+        alert('施設の保存に失敗しました');
+    }
 });
 
 // Load all facilities
@@ -182,7 +184,7 @@ async function loadFacilities() {
             const facilities = response.data.data;
             
             // Clear existing markers
-            markers.forEach(marker => marker.setMap(null));
+            markers.forEach(marker => map.removeLayer(marker));
             markers = [];
             
             // Add markers for each facility
@@ -210,55 +212,46 @@ function centerMapOnFacilities(facilities) {
     if (facilities.length === 1) {
         // Single facility: center on it with zoom 15
         const facility = facilities[0];
-        map.setCenter({ lat: facility.latitude, lng: facility.longitude });
-        map.setZoom(15);
+        map.setView([facility.latitude, facility.longitude], 15);
     } else {
         // Multiple facilities: fit bounds to show all markers
-        const bounds = new google.maps.LatLngBounds();
-        facilities.forEach(f => {
-            bounds.extend({ lat: f.latitude, lng: f.longitude });
-        });
-        map.fitBounds(bounds);
+        const bounds = L.latLngBounds(
+            facilities.map(f => [f.latitude, f.longitude])
+        );
+        map.fitBounds(bounds, { padding: [50, 50] });
     }
 }
 
 // Add marker to map
 function addMarker(facility) {
-    const position = { lat: facility.latitude, lng: facility.longitude };
+    const position = [facility.latitude, facility.longitude];
     
-    const marker = new google.maps.Marker({
-        position: position,
-        map: map,
-        title: facility.name,
-        animation: google.maps.Animation.DROP
+    // Custom red icon for saved facilities
+    const redIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
     });
     
-    // Create info window
-    const infoWindow = new google.maps.InfoWindow({
-        content: createInfoWindowContent(facility)
-    });
+    const marker = L.marker(position, { icon: redIcon }).addTo(map);
     
-    marker.addListener('click', () => {
-        // Close all other info windows
-        markers.forEach(m => {
-            if (m.infoWindow) {
-                m.infoWindow.close();
-            }
-        });
-        infoWindow.open(map, marker);
-    });
+    // Create popup content
+    const popupContent = createPopupContent(facility);
+    marker.bindPopup(popupContent, { maxWidth: 300 });
     
-    marker.infoWindow = infoWindow;
     markers.push(marker);
 }
 
-// Create info window content
-function createInfoWindowContent(facility) {
+// Create popup content
+function createPopupContent(facility) {
     const categoryBadge = facility.category ? 
         `<span style="display: inline-block; background-color: #dbeafe; color: #1e40af; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${facility.category}</span>` : '';
     
     const imageHtml = facility.image_url ? 
-        `<img src="${facility.image_url}" alt="${facility.name}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 0.5rem; margin-top: 0.5rem;">` : '';
+        `<img src="${facility.image_url}" alt="${facility.name}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 0.5rem; margin-top: 0.5rem;">` : '';
     
     return `
         <div style="max-width: 300px;">
@@ -314,17 +307,16 @@ function displayFacilityList(facilities) {
 
 // Focus on facility when clicked from list
 function focusOnFacility(lat, lng) {
-    map.setCenter({ lat, lng });
-    map.setZoom(15);
+    map.setView([lat, lng], 15);
     
-    // Find and click the marker
+    // Find and open the marker popup
     const marker = markers.find(m => {
-        const pos = m.getPosition();
-        return pos.lat() === lat && pos.lng() === lng;
+        const pos = m.getLatLng();
+        return pos.lat === lat && pos.lng === lng;
     });
     
     if (marker) {
-        google.maps.event.trigger(marker, 'click');
+        marker.openPopup();
     }
 }
 
@@ -335,7 +327,7 @@ async function editFacility(facilityId) {
         
         if (response.data.success) {
             const facility = response.data.data;
-            const latLng = new google.maps.LatLng(facility.latitude, facility.longitude);
+            const latLng = { lat: facility.latitude, lng: facility.longitude };
             showFacilityForm(latLng, facility);
         }
     } catch (error) {
@@ -364,7 +356,6 @@ async function deleteFacility(facilityId) {
 }
 
 // Make functions available globally
-window.initMap = initMap;
 window.closeModal = closeModal;
 window.editFacility = editFacility;
 window.deleteFacility = deleteFacility;
