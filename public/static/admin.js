@@ -10,15 +10,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Setup event listeners
 function setupEventListeners() {
     // Real-time search
-    document.getElementById('search-input').addEventListener('input', applyFilters);
-    document.getElementById('category-filter').addEventListener('change', applyFilters);
-    document.getElementById('sort-select').addEventListener('change', applyFilters);
+    const searchInput = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter');
+    const sortSelect = document.getElementById('sort-select');
+    const facilityForm = document.getElementById('facility-form');
+    const facilityImage = document.getElementById('facility-image');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+    
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', applyFilters);
+    }
+    
+    if (sortSelect) {
+        sortSelect.addEventListener('change', applyFilters);
+    }
     
     // Form submission
-    document.getElementById('facility-form').addEventListener('submit', handleFormSubmit);
+    if (facilityForm) {
+        facilityForm.addEventListener('submit', handleFormSubmit);
+    }
     
     // Image file selection
-    document.getElementById('facility-image').addEventListener('change', handleImageSelection);
+    if (facilityImage) {
+        facilityImage.addEventListener('change', handleImageSelection);
+    }
 }
 
 // Load all facilities
@@ -265,9 +283,14 @@ async function deleteFacility(facilityId) {
 async function handleFormSubmit(e) {
     e.preventDefault();
     
+    console.log('Form submitted');
+    
     const facilityId = document.getElementById('facility-id').value;
     const imageFile = document.getElementById('facility-image').files[0];
     let imageUrl = document.getElementById('facility-image-url').value;
+    
+    console.log('Facility ID:', facilityId);
+    console.log('Image file:', imageFile);
     
     try {
         // Upload image if a new file is selected
@@ -298,16 +321,22 @@ async function handleFormSubmit(e) {
             image_url: imageUrl || null
         };
         
+        console.log('Facility data:', facilityData);
+        
         let response;
         if (facilityId) {
             // Update existing facility
+            console.log('Updating facility...');
             response = await axios.put(`/api/facilities/${facilityId}`, facilityData);
             showNotification('施設情報を更新しました', 'success');
         } else {
             // Create new facility
+            console.log('Creating new facility...');
             response = await axios.post('/api/facilities', facilityData);
             showNotification('施設を登録しました', 'success');
         }
+        
+        console.log('Response:', response.data);
         
         if (response.data.success) {
             closeModal();
@@ -315,7 +344,8 @@ async function handleFormSubmit(e) {
         }
     } catch (error) {
         console.error('Error saving facility:', error);
-        showNotification('施設の保存に失敗しました', 'error');
+        console.error('Error details:', error.response?.data || error.message);
+        showNotification('施設の保存に失敗しました: ' + (error.response?.data?.error || error.message), 'error');
     }
 }
 
