@@ -12,6 +12,12 @@
       "database_name": "webapp-production",
       "database_id": "local-dev-db"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "webapp-images"
+    }
   ]
   // "vars": {
   //   "MY_VAR": "my-variable"

@@ -36,6 +36,10 @@ function showFacilityForm(latLng, facilityData = null) {
     // Reset form
     form.reset();
     
+    // Reset image preview
+    document.getElementById('image-preview').classList.add('hidden');
+    document.getElementById('facility-image-url').value = '';
+    
     if (facilityData) {
         // Edit mode
         modalTitle.textContent = '施設情報編集';
@@ -48,6 +52,13 @@ function showFacilityForm(latLng, facilityData = null) {
         document.getElementById('facility-website').value = facilityData.website || '';
         document.getElementById('facility-lat').value = facilityData.latitude;
         document.getElementById('facility-lng').value = facilityData.longitude;
+        
+        // Show existing image if available
+        if (facilityData.image_url) {
+            document.getElementById('facility-image-url').value = facilityData.image_url;
+            document.getElementById('preview-img').src = facilityData.image_url;
+            document.getElementById('image-preview').classList.remove('hidden');
+        }
     } else {
         // Create mode
         modalTitle.textContent = '新規施設登録';
@@ -86,23 +97,64 @@ function closeModal() {
     }
 }
 
+// Handle image file selection
+document.getElementById('facility-image').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('preview-img').src = e.target.result;
+        document.getElementById('image-preview').classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+});
+
+// Remove image
+function removeImage() {
+    document.getElementById('facility-image').value = '';
+    document.getElementById('facility-image-url').value = '';
+    document.getElementById('image-preview').classList.add('hidden');
+}
+
 // Handle form submission
 document.getElementById('facility-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const facilityId = document.getElementById('facility-id').value;
-    const facilityData = {
-        name: document.getElementById('facility-name').value,
-        category: document.getElementById('facility-category').value,
-        description: document.getElementById('facility-description').value,
-        address: document.getElementById('facility-address').value,
-        phone: document.getElementById('facility-phone').value,
-        website: document.getElementById('facility-website').value,
-        latitude: parseFloat(document.getElementById('facility-lat').value),
-        longitude: parseFloat(document.getElementById('facility-lng').value)
-    };
+    const imageFile = document.getElementById('facility-image').files[0];
+    let imageUrl = document.getElementById('facility-image-url').value;
     
     try {
+        // Upload image if a new file is selected
+        if (imageFile) {
+            const formData = new FormData();
+            formData.append('image', imageFile);
+            
+            const uploadResponse = await axios.post('/api/upload-image', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            
+            if (uploadResponse.data.success) {
+                imageUrl = uploadResponse.data.data.imageUrl;
+            }
+        }
+        
+        const facilityData = {
+            name: document.getElementById('facility-name').value,
+            category: document.getElementById('facility-category').value,
+            description: document.getElementById('facility-description').value,
+            address: document.getElementById('facility-address').value,
+            phone: document.getElementById('facility-phone').value,
+            website: document.getElementById('facility-website').value,
+            latitude: parseFloat(document.getElementById('facility-lat').value),
+            longitude: parseFloat(document.getElementById('facility-lng').value),
+            image_url: imageUrl || null
+        };
+        
         let response;
         if (facilityId) {
             // Update existing facility
@@ -198,10 +250,14 @@ function createPopupContent(facility) {
     const categoryBadge = facility.category ? 
         `<span style="display: inline-block; background-color: #dbeafe; color: #1e40af; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${facility.category}</span>` : '';
     
+    const imageHtml = facility.image_url ? 
+        `<img src="${facility.image_url}" alt="${facility.name}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 0.5rem; margin-top: 0.5rem;">` : '';
+    
     return `
         <div style="max-width: 300px;">
             <h3 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 0.5rem;">${facility.name}</h3>
             ${categoryBadge}
+            ${imageHtml}
             ${facility.description ? `<p style="margin-top: 0.5rem; color: #374151;">${facility.description}</p>` : ''}
             ${facility.address ? `<p style="margin-top: 0.5rem; font-size: 0.875rem; color: #4b5563;"><i class="fas fa-map-marker-alt"></i> ${facility.address}</p>` : ''}
             ${facility.phone ? `<p style="font-size: 0.875rem; color: #4b5563;"><i class="fas fa-phone"></i> ${facility.phone}</p>` : ''}
@@ -230,6 +286,7 @@ function displayFacilityList(facilities) {
     listContainer.innerHTML = facilities.map(facility => `
         <div class="facility-card bg-gray-50 p-4 rounded-lg border border-gray-200 cursor-pointer"
              onclick="focusOnFacility(${facility.latitude}, ${facility.longitude})">
+            ${facility.image_url ? `<img src="${facility.image_url}" alt="${facility.name}" class="w-full h-40 object-cover rounded-lg mb-3">` : ''}
             <h3 class="text-lg font-bold text-gray-800 mb-1">${facility.name}</h3>
             ${facility.category ? `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mb-2">${facility.category}</span>` : ''}
             ${facility.description ? `<p class="text-sm text-gray-600 mt-2 line-clamp-2">${facility.description}</p>` : ''}
@@ -303,3 +360,4 @@ window.closeModal = closeModal;
 window.editFacility = editFacility;
 window.deleteFacility = deleteFacility;
 window.focusOnFacility = focusOnFacility;
+window.removeImage = removeImage;

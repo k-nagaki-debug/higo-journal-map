@@ -4,6 +4,7 @@ import { serveStatic } from 'hono/cloudflare-workers'
 
 type Bindings = {
   DB: D1Database;
+  IMAGES: R2Bucket;
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -48,20 +49,88 @@ app.get('/api/facilities/:id', async (c) => {
   }
 })
 
+// Upload image
+app.post('/api/upload-image', async (c) => {
+  try {
+    const formData = await c.req.formData()
+    const file = formData.get('image') as File
+    
+    if (!file) {
+      return c.json({ success: false, error: 'No image file provided' }, 400)
+    }
+    
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      return c.json({ success: false, error: 'File must be an image' }, 400)
+    }
+    
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return c.json({ success: false, error: 'Image size must be less than 5MB' }, 400)
+    }
+    
+    // Generate unique filename
+    const timestamp = Date.now()
+    const randomStr = Math.random().toString(36).substring(7)
+    const extension = file.name.split('.').pop()
+    const filename = `facility-${timestamp}-${randomStr}.${extension}`
+    
+    // Upload to R2
+    const arrayBuffer = await file.arrayBuffer()
+    await c.env.IMAGES.put(filename, arrayBuffer, {
+      httpMetadata: {
+        contentType: file.type
+      }
+    })
+    
+    // Return image URL (will be accessible via /api/images/:filename)
+    const imageUrl = `/api/images/${filename}`
+    
+    return c.json({ 
+      success: true, 
+      data: { imageUrl, filename }
+    }, 201)
+  } catch (error) {
+    console.error('Image upload error:', error)
+    return c.json({ success: false, error: 'Failed to upload image' }, 500)
+  }
+})
+
+// Serve images from R2
+app.get('/api/images/:filename', async (c) => {
+  const filename = c.req.param('filename')
+  
+  try {
+    const object = await c.env.IMAGES.get(filename)
+    
+    if (!object) {
+      return c.json({ success: false, error: 'Image not found' }, 404)
+    }
+    
+    const headers = new Headers()
+    object.writeHttpMetadata(headers)
+    headers.set('Cache-Control', 'public, max-age=31536000')
+    
+    return new Response(object.body, { headers })
+  } catch (error) {
+    return c.json({ success: false, error: 'Failed to retrieve image' }, 500)
+  }
+})
+
 // Create new facility
 app.post('/api/facilities', async (c) => {
   try {
     const body = await c.req.json()
-    const { name, description, category, latitude, longitude, address, phone, website } = body
+    const { name, description, category, latitude, longitude, address, phone, website, image_url } = body
     
     if (!name || !latitude || !longitude) {
       return c.json({ success: false, error: 'Name, latitude, and longitude are required' }, 400)
     }
     
     const result = await c.env.DB.prepare(
-      `INSERT INTO facilities (name, description, category, latitude, longitude, address, phone, website)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(name, description || null, category || null, latitude, longitude, address || null, phone || null, website || null).run()
+      `INSERT INTO facilities (name, description, category, latitude, longitude, address, phone, website, image_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(name, description || null, category || null, latitude, longitude, address || null, phone || null, website || null, image_url || null).run()
     
     return c.json({ 
       success: true, 
@@ -78,14 +147,14 @@ app.put('/api/facilities/:id', async (c) => {
   
   try {
     const body = await c.req.json()
-    const { name, description, category, latitude, longitude, address, phone, website } = body
+    const { name, description, category, latitude, longitude, address, phone, website, image_url } = body
     
     const result = await c.env.DB.prepare(
       `UPDATE facilities 
        SET name = ?, description = ?, category = ?, latitude = ?, longitude = ?, 
-           address = ?, phone = ?, website = ?, updated_at = CURRENT_TIMESTAMP
+           address = ?, phone = ?, website = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`
-    ).bind(name, description || null, category || null, latitude, longitude, address || null, phone || null, website || null, id).run()
+    ).bind(name, description || null, category || null, latitude, longitude, address || null, phone || null, website || null, image_url || null, id).run()
     
     if (result.meta.changes === 0) {
       return c.json({ success: false, error: 'Facility not found' }, 404)
@@ -481,10 +550,24 @@ app.get('/', (c) => {
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     
-                    <div class="mb-6">
+                    <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2">ウェブサイト</label>
                         <input type="url" id="facility-website"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-bold mb-2">施設画像</label>
+                        <input type="file" id="facility-image" accept="image/*"
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">JPG, PNG, GIF形式（最大5MB）</p>
+                        <input type="hidden" id="facility-image-url">
+                        <div id="image-preview" class="mt-2 hidden">
+                            <img id="preview-img" src="" alt="Preview" class="max-w-full h-32 object-cover rounded">
+                            <button type="button" onclick="removeImage()" class="text-red-600 text-sm mt-1 hover:underline">
+                                <i class="fas fa-times"></i> 画像を削除
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="flex gap-2">
