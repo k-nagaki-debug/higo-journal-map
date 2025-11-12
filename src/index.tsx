@@ -496,32 +496,24 @@ app.get('/', (c) => {
             }
             .admin-button {
                 position: relative;
-                background-size: 200% 200%;
-                animation: gradient-shift 3s ease infinite;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
             }
-            .admin-button::before {
+            .admin-button::after {
                 content: '';
                 position: absolute;
                 inset: 0;
                 border-radius: 0.75rem;
-                padding: 2px;
-                background: linear-gradient(45deg, #ff00ff, #00ffff, #ff00ff);
-                -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-                -webkit-mask-composite: xor;
-                mask-composite: exclude;
+                background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
                 opacity: 0;
                 transition: opacity 0.3s;
             }
-            .admin-button:hover::before {
-                opacity: 0.7;
-                animation: border-spin 2s linear infinite;
+            .admin-button:hover::after {
+                opacity: 1;
             }
-            @keyframes gradient-shift {
-                0%, 100% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-            }
-            @keyframes border-spin {
-                to { transform: rotate(360deg); }
+            .admin-button:active {
+                transform: scale(0.98);
             }
         </style>
     </head>
@@ -535,11 +527,10 @@ app.get('/', (c) => {
                     </h1>
                     <p class="text-gray-600">地図上をクリックして施設を登録してください</p>
                 </div>
-                <a href="/admin" class="admin-button group relative inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white font-bold rounded-xl shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 overflow-hidden">
-                    <span class="absolute inset-0 bg-gradient-to-r from-red-600 via-pink-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                    <i class="fas fa-cog relative z-10 group-hover:rotate-180 transition-transform duration-500"></i>
-                    <span class="relative z-10">管理画面</span>
-                    <i class="fas fa-arrow-right relative z-10 group-hover:translate-x-1 transition-transform duration-300"></i>
+                <a href="/admin" class="admin-button group relative inline-flex items-center gap-3 px-6 py-3 text-white font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                    <i class="fas fa-shield-alt relative z-10 text-lg"></i>
+                    <span class="relative z-10 tracking-wide">管理画面</span>
+                    <i class="fas fa-arrow-right relative z-10 group-hover:translate-x-1 transition-transform duration-300 text-sm"></i>
                 </a>
             </div>
 
