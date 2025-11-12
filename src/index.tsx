@@ -424,7 +424,7 @@ app.get('/admin', (c) => {
                     </div>
                     
                     <div class="mb-4">
-                        <label class="block text-gray-700 font-bold mb-2">ウェブサイト</label>
+                        <label class="block text-gray-700 font-bold mb-2">記事リンク</label>
                         <input type="url" id="facility-website"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
@@ -578,7 +578,7 @@ app.get('/', (c) => {
                     </div>
                     
                     <div class="mb-4">
-                        <label class="block text-gray-700 font-bold mb-2">ウェブサイト</label>
+                        <label class="block text-gray-700 font-bold mb-2">記事リンク</label>
                         <input type="url" id="facility-website"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>

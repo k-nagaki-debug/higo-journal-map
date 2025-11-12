@@ -9,7 +9,7 @@ OpenStreetMapとLeaflet.jsを使用して、**APIキー不要**ですぐに使�
 
 #### 📍 マップビュー
 - ✅ 地図上でクリックしてピンを立てる（Leaflet.js + OpenStreetMap）
-- ✅ 施設情報の登録（名前、説明、カテゴリ、住所、電話番号、ウェブサイト）
+- ✅ 施設情報の登録（名前、説明、カテゴリ、住所、電話番号、記事リンク）
 - ✅ 施設の一覧表示（カード形式）
 - ✅ マーカークリックで詳細情報表示（ポップアップ）
 - ✅ 施設リストからマップへのフォーカス機能
@@ -51,7 +51,7 @@ facilities (施設テーブル)
 ├── longitude (REAL) - 経度 *必須
 ├── address (TEXT) - 住所
 ├── phone (TEXT) - 電話番号
-├── website (TEXT) - ウェブサイト
+├── website (TEXT) - 記事リンク
 ├── created_at (DATETIME) - 作成日時
 └── updated_at (DATETIME) - 更新日時
 ```
