@@ -2,27 +2,30 @@ let map;
 let markers = [];
 let currentFacilityMarker = null;
 
-// Initialize Google Map
+// Initialize Leaflet Map
 async function initMap() {
     // Default center: Tokyo
-    const center = { lat: 35.6812, lng: 139.7671 };
+    const center = [35.6812, 139.7671];
     
-    map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 12,
-        center: center,
-        mapTypeControl: true,
-        streetViewControl: true,
-        fullscreenControl: true,
-    });
+    map = L.map('map').setView(center, 12);
+    
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
 
     // Add click listener to map
-    map.addListener('click', (event) => {
-        showFacilityForm(event.latLng);
+    map.on('click', (event) => {
+        showFacilityForm(event.latlng);
     });
 
     // Load existing facilities
     await loadFacilities();
 }
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', initMap);
 
 // Show facility form when map is clicked
 function showFacilityForm(latLng, facilityData = null) {
@@ -48,21 +51,24 @@ function showFacilityForm(latLng, facilityData = null) {
     } else {
         // Create mode
         modalTitle.textContent = '新規施設登録';
-        document.getElementById('facility-lat').value = latLng.lat();
-        document.getElementById('facility-lng').value = latLng.lng();
+        document.getElementById('facility-lat').value = latLng.lat;
+        document.getElementById('facility-lng').value = latLng.lng;
         
         // Show temporary marker
         if (currentFacilityMarker) {
-            currentFacilityMarker.setMap(null);
+            map.removeLayer(currentFacilityMarker);
         }
-        currentFacilityMarker = new google.maps.Marker({
-            position: latLng,
-            map: map,
-            icon: {
-                url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-            },
-            animation: google.maps.Animation.DROP
+        
+        const blueIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
         });
+        
+        currentFacilityMarker = L.marker([latLng.lat, latLng.lng], { icon: blueIcon }).addTo(map);
     }
     
     modal.classList.remove('hidden');
@@ -75,7 +81,7 @@ function closeModal() {
     
     // Remove temporary marker
     if (currentFacilityMarker) {
-        currentFacilityMarker.setMap(null);
+        map.removeLayer(currentFacilityMarker);
         currentFacilityMarker = null;
     }
 }
@@ -126,7 +132,7 @@ async function loadFacilities() {
             const facilities = response.data.data;
             
             // Clear existing markers
-            markers.forEach(marker => marker.setMap(null));
+            markers.forEach(marker => map.removeLayer(marker));
             markers = [];
             
             // Add markers for each facility
@@ -144,52 +150,45 @@ async function loadFacilities() {
 
 // Add marker to map
 function addMarker(facility) {
-    const position = { lat: facility.latitude, lng: facility.longitude };
+    const position = [facility.latitude, facility.longitude];
     
-    const marker = new google.maps.Marker({
-        position: position,
-        map: map,
-        title: facility.name,
-        animation: google.maps.Animation.DROP
+    // Custom red icon for saved facilities
+    const redIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
     });
     
-    // Create info window
-    const infoWindow = new google.maps.InfoWindow({
-        content: createInfoWindowContent(facility)
-    });
+    const marker = L.marker(position, { icon: redIcon }).addTo(map);
     
-    marker.addListener('click', () => {
-        // Close all other info windows
-        markers.forEach(m => {
-            if (m.infoWindow) {
-                m.infoWindow.close();
-            }
-        });
-        infoWindow.open(map, marker);
-    });
+    // Create popup content
+    const popupContent = createPopupContent(facility);
+    marker.bindPopup(popupContent, { maxWidth: 300 });
     
-    marker.infoWindow = infoWindow;
     markers.push(marker);
 }
 
-// Create info window content
-function createInfoWindowContent(facility) {
+// Create popup content
+function createPopupContent(facility) {
     const categoryBadge = facility.category ? 
-        `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">${facility.category}</span>` : '';
+        `<span style="display: inline-block; background-color: #dbeafe; color: #1e40af; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${facility.category}</span>` : '';
     
     return `
         <div style="max-width: 300px;">
-            <h3 class="text-lg font-bold mb-2">${facility.name}</h3>
+            <h3 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 0.5rem;">${facility.name}</h3>
             ${categoryBadge}
-            ${facility.description ? `<p class="mt-2 text-gray-700">${facility.description}</p>` : ''}
-            ${facility.address ? `<p class="mt-2 text-sm text-gray-600"><i class="fas fa-map-marker-alt"></i> ${facility.address}</p>` : ''}
-            ${facility.phone ? `<p class="text-sm text-gray-600"><i class="fas fa-phone"></i> ${facility.phone}</p>` : ''}
-            ${facility.website ? `<p class="text-sm"><a href="${facility.website}" target="_blank" class="text-blue-600 hover:underline"><i class="fas fa-external-link-alt"></i> ウェブサイト</a></p>` : ''}
-            <div class="mt-3 flex gap-2">
-                <button onclick="editFacility(${facility.id})" class="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+            ${facility.description ? `<p style="margin-top: 0.5rem; color: #374151;">${facility.description}</p>` : ''}
+            ${facility.address ? `<p style="margin-top: 0.5rem; font-size: 0.875rem; color: #4b5563;"><i class="fas fa-map-marker-alt"></i> ${facility.address}</p>` : ''}
+            ${facility.phone ? `<p style="font-size: 0.875rem; color: #4b5563;"><i class="fas fa-phone"></i> ${facility.phone}</p>` : ''}
+            ${facility.website ? `<p style="font-size: 0.875rem;"><a href="${facility.website}" target="_blank" style="color: #2563eb; text-decoration: underline;"><i class="fas fa-external-link-alt"></i> ウェブサイト</a></p>` : ''}
+            <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+                <button onclick="editFacility(${facility.id})" style="font-size: 0.875rem; background-color: #3b82f6; color: white; padding: 0.25rem 0.75rem; border-radius: 0.25rem; border: none; cursor: pointer;">
                     <i class="fas fa-edit"></i> 編集
                 </button>
-                <button onclick="deleteFacility(${facility.id})" class="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                <button onclick="deleteFacility(${facility.id})" style="font-size: 0.875rem; background-color: #ef4444; color: white; padding: 0.25rem 0.75rem; border-radius: 0.25rem; border: none; cursor: pointer;">
                     <i class="fas fa-trash"></i> 削除
                 </button>
             </div>
@@ -208,7 +207,7 @@ function displayFacilityList(facilities) {
     
     listContainer.innerHTML = facilities.map(facility => `
         <div class="facility-card bg-gray-50 p-4 rounded-lg border border-gray-200 cursor-pointer"
-             onclick="focusOnFacility(${facility.latitude}, ${facility.longitude}, ${facility.id})">
+             onclick="focusOnFacility(${facility.latitude}, ${facility.longitude})">
             <h3 class="text-lg font-bold text-gray-800 mb-1">${facility.name}</h3>
             ${facility.category ? `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mb-2">${facility.category}</span>` : ''}
             ${facility.description ? `<p class="text-sm text-gray-600 mt-2 line-clamp-2">${facility.description}</p>` : ''}
@@ -228,18 +227,17 @@ function displayFacilityList(facilities) {
 }
 
 // Focus on facility when clicked from list
-function focusOnFacility(lat, lng, facilityId) {
-    map.setCenter({ lat, lng });
-    map.setZoom(15);
+function focusOnFacility(lat, lng) {
+    map.setView([lat, lng], 15);
     
-    // Find and click the marker
+    // Find and open the marker popup
     const marker = markers.find(m => {
-        const pos = m.getPosition();
-        return pos.lat() === lat && pos.lng() === lng;
+        const pos = m.getLatLng();
+        return pos.lat === lat && pos.lng === lng;
     });
     
     if (marker) {
-        google.maps.event.trigger(marker, 'click');
+        marker.openPopup();
     }
 }
 
@@ -250,7 +248,7 @@ async function editFacility(facilityId) {
         
         if (response.data.success) {
             const facility = response.data.data;
-            const latLng = new google.maps.LatLng(facility.latitude, facility.longitude);
+            const latLng = { lat: facility.latitude, lng: facility.longitude };
             showFacilityForm(latLng, facility);
         }
     } catch (error) {
@@ -279,7 +277,6 @@ async function deleteFacility(facilityId) {
 }
 
 // Make functions available globally
-window.initMap = initMap;
 window.closeModal = closeModal;
 window.editFacility = editFacility;
 window.deleteFacility = deleteFacility;

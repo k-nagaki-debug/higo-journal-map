@@ -236,18 +236,12 @@ app.get('/', (c) => {
             </div>
         </div>
 
+        <!-- Leaflet CSS -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-        <script>
-            // Google Maps API Key - Replace with your actual API key
-            const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
-            
-            // Load Google Maps script
-            const script = document.createElement('script');
-            script.src = \`https://maps.googleapis.com/maps/api/js?key=\${GOOGLE_MAPS_API_KEY}&callback=initMap&language=ja\`;
-            script.async = true;
-            script.defer = true;
-            document.head.appendChild(script);
-        </script>
+        <!-- Leaflet JS -->
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="/static/app.js"></script>
     </body>
     </html>
