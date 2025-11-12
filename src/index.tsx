@@ -5,6 +5,7 @@ import { serveStatic } from 'hono/cloudflare-workers'
 type Bindings = {
   DB: D1Database;
   IMAGES: R2Bucket;
+  GOOGLE_MAPS_API_KEY?: string;
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -14,6 +15,13 @@ app.use('/api/*', cors())
 
 // Serve static files
 app.use('/static/*', serveStatic({ root: './' }))
+
+// Get Google Maps API Key
+app.get('/api/config/google-maps-key', (c) => {
+  return c.json({ 
+    apiKey: c.env.GOOGLE_MAPS_API_KEY || '' 
+  })
+})
 
 // API Routes for Facilities
 
@@ -486,13 +494,6 @@ app.get('/', (c) => {
             #facility-modal {
                 z-index: 9999 !important;
             }
-            .leaflet-pane {
-                z-index: 400;
-            }
-            .leaflet-top,
-            .leaflet-bottom {
-                z-index: 1000;
-            }
         </style>
     </head>
     <body class="bg-gray-50">
@@ -610,12 +611,33 @@ app.get('/', (c) => {
             </div>
         </div>
 
-        <!-- Leaflet CSS -->
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-        <!-- Leaflet JS -->
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script>
+            // Load Google Maps API Key from backend
+            async function loadGoogleMaps() {
+                try {
+                    const response = await axios.get('/api/config/google-maps-key');
+                    const apiKey = response.data.apiKey;
+                    
+                    if (!apiKey) {
+                        console.error('Google Maps API Key not configured');
+                        alert('Google Maps APIキーが設定されていません。\\n.dev.varsファイルにGOOGLE_MAPS_API_KEYを設定してください。');
+                        return;
+                    }
+                    
+                    // Load Google Maps script
+                    const script = document.createElement('script');
+                    script.src = \`https://maps.googleapis.com/maps/api/js?key=\${apiKey}&callback=initMap&language=ja\`;
+                    script.async = true;
+                    script.defer = true;
+                    document.head.appendChild(script);
+                } catch (error) {
+                    console.error('Failed to load Google Maps API Key:', error);
+                }
+            }
+            
+            loadGoogleMaps();
+        </script>
         <script src="/static/app.js"></script>
     </body>
     </html>
