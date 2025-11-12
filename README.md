@@ -1,16 +1,18 @@
 # 施設マップ (Facility Map)
 
 ## プロジェクト概要
-Googleマップ上にピンを立てて施設情報を登録・管理できるWebアプリケーションです。
+地図上にピンを立てて施設情報を登録・管理できるWebアプリケーションです。
+OpenStreetMapとLeaflet.jsを使用して、**APIキー不要**ですぐに使い始められます。
 
 ### 主な機能
-- ✅ Googleマップ上でクリックしてピンを立てる
+- ✅ 地図上でクリックしてピンを立てる（Leaflet.js + OpenStreetMap）
 - ✅ 施設情報の登録（名前、説明、カテゴリ、住所、電話番号、ウェブサイト）
 - ✅ 施設の一覧表示（カード形式）
 - ✅ 施設情報の編集・削除
-- ✅ マーカークリックで詳細情報表示
+- ✅ マーカークリックで詳細情報表示（ポップアップ）
 - ✅ 施設リストからマップへのフォーカス機能
 - ✅ サンプルデータ付き（東京タワー、浅草寺、スカイツリー）
+- ✅ **APIキー不要** - すぐに使用可能！
 
 ## URLs
 - **開発環境**: https://3000-ik7qqsck6za7d79ds73q2-8f57ffe2.sandbox.novita.ai
@@ -54,17 +56,8 @@ facilities (施設テーブル)
 
 ## 使い方
 
-### 1. Google Maps API Keyの設定
-アプリを使用するには、Google Maps API Keyが必要です。
-
-1. [Google Cloud Console](https://console.cloud.google.com/)でプロジェクトを作成
-2. Maps JavaScript APIを有効化
-3. APIキーを作成
-4. `src/index.tsx` の `YOUR_GOOGLE_MAPS_API_KEY` を実際のAPIキーに置き換え
-
-```typescript
-const GOOGLE_MAPS_API_KEY = 'あなたのAPIキー';
-```
+### 1. すぐに使用可能！
+**APIキーは不要です！** アプリにアクセスするだけで、すぐに施設を登録できます。
 
 ### 2. 施設の登録
 1. 地図上の任意の場所をクリック
@@ -72,12 +65,18 @@ const GOOGLE_MAPS_API_KEY = 'あなたのAPIキー';
 3. モーダルフォームに施設情報を入力
 4. 「保存」ボタンをクリック
 
-### 3. 施設の閲覧
+### 3. 地図の操作
+- マウスホイールで拡大・縮小
+- ドラッグで地図を移動
+- 赤いマーカー：登録済みの施設
+- 青いマーカー：登録中の一時マーカー
+
+### 4. 施設の閲覧
 - 地図上のマーカーをクリックすると情報ウィンドウが表示
 - 画面下部の施設一覧からも確認可能
 - 施設カードをクリックすると地図がその場所にフォーカス
 
-### 4. 施設の編集・削除
+### 5. 施設の編集・削除
 - 情報ウィンドウまたは施設カードの「編集」ボタンで編集
 - 「削除」ボタンで削除（確認ダイアログ表示）
 
@@ -85,7 +84,8 @@ const GOOGLE_MAPS_API_KEY = 'あなたのAPIキー';
 - **フレームワーク**: Hono v4 (Cloudflare Workers対応)
 - **データベース**: Cloudflare D1 (SQLite)
 - **フロントエンド**: Vanilla JavaScript + TailwindCSS
-- **地図**: Google Maps JavaScript API
+- **地図ライブラリ**: Leaflet.js v1.9.4 + OpenStreetMap
+- **HTTPクライアント**: Axios
 - **デプロイ**: Cloudflare Pages
 - **開発環境**: Wrangler + PM2
 
@@ -143,12 +143,13 @@ npm test                    # サービステスト
 - ✅ Honoプロジェクトのセットアップ
 - ✅ D1データベースの設定とマイグレーション
 - ✅ RESTful API実装（CRUD操作）
-- ✅ Googleマップ統合
+- ✅ Leaflet.js + OpenStreetMap統合（APIキー不要）
 - ✅ 施設登録フォーム（モーダル）
 - ✅ 施設一覧表示（カード形式）
-- ✅ マーカーとInfoWindow
+- ✅ カスタムマーカー（赤・青）とポップアップ
 - ✅ 編集・削除機能
 - ✅ サンプルデータ
+- ✅ レスポンシブデザイン
 
 ## 未実装の機能・今後の改善案
 - ⏳ 本番環境へのデプロイ（Cloudflare Pages）
@@ -163,17 +164,17 @@ npm test                    # サービステスト
 - ⏳ エクスポート機能（JSON/CSV）
 
 ## 推奨される次のステップ
-1. **Google Maps API Keyの設定** - 地図機能を有効化
-2. **実際のデータ登録** - 自分の好きな場所を登録してテスト
-3. **カスタマイズ** - カテゴリの追加やフィールドの拡張
+1. **実際のデータ登録** - 自分の好きな場所を登録してテスト
+2. **カスタマイズ** - カテゴリの追加やフィールドの拡張
+3. **検索機能の追加** - 施設名やカテゴリでフィルタリング
 4. **本番デプロイ** - Cloudflare Pagesへデプロイ
 
 ## トラブルシューティング
 
 ### 地図が表示されない
-- Google Maps API Keyが正しく設定されているか確認
 - ブラウザのコンソールでエラーを確認
-- APIキーの制限設定を確認
+- インターネット接続を確認（OpenStreetMapのタイル読み込みに必要）
+- ブラウザのキャッシュをクリアして再読み込み
 
 ### データベースエラー
 ```bash
@@ -189,6 +190,14 @@ npm run clean-port  # ポート3000をクリーン
 MIT
 
 ## 注意事項
-- Google Maps API Keyは必ず`.env`ファイルで管理し、GitHubにコミットしないでください
-- 本番環境ではAPIキーの制限を適切に設定してください
+- OpenStreetMapは[利用規約](https://www.openstreetmap.org/copyright)に従ってご使用ください
+- 商用利用の場合は、適切なクレジット表示が必要です
 - サンプルデータはあくまでテスト用です
+- 大量のリクエストを送信する場合は、OpenStreetMapのタイルサーバーへの配慮が必要です
+
+## Google Mapsへの切り替え
+Google Maps JavaScript APIを使用したい場合は、以下の手順で切り替え可能です：
+1. Google Cloud Consoleで Maps JavaScript APIを有効化
+2. APIキーを取得
+3. `src/index.tsx`でLeafletの代わりにGoogle Maps APIを読み込む
+4. `public/static/app.js`をGoogle Maps用のコードに変更
