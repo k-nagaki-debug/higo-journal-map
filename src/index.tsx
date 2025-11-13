@@ -610,7 +610,7 @@ app.get('/login', (c) => {
                 <div class="mt-6 text-center text-sm text-gray-600">
                     <p>デフォルト認証情報:</p>
                     <p class="font-mono bg-white px-3 py-2 rounded mt-2">
-                        ユーザー名: admin / パスワード: higo2024
+                        ユーザー名: admin / パスワード: higo2025
                     </p>
                 </div>
             </div>
