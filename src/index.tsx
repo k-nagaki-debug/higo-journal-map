@@ -288,17 +288,20 @@ app.get('/admin', requireAuth, (c) => {
                         </h1>
                         <p class="text-sm text-gray-600 mt-1">Facility Management Dashboard</p>
                     </div>
-                    <div class="flex gap-3">
+                    <div class="flex gap-3 items-center">
                         <a href="/" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
                             <i class="fas fa-map-marked-alt mr-2"></i>
-                            マップビュー
+                            トップページ
                         </a>
-                        <button onclick="showAddModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <a href="/edit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-edit mr-2"></i>
+                            編集モード
+                        </a>
+                        <button onclick="showAddModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
                             <i class="fas fa-plus mr-2"></i>
                             新規登録
                         </button>
-                        <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
-                            <i class="fas fa-sign-out-alt mr-2"></i>
+                        <button onclick="logout()" class="text-sm text-gray-600 hover:text-gray-800 underline ml-4">
                             ログアウト
                         </button>
                     </div>
@@ -604,7 +607,7 @@ app.get('/login', (c) => {
                     </form>
 
                     <div class="mt-6 text-center">
-                        <a href="/view" class="text-blue-600 hover:text-blue-800 transition">
+                        <a href="/" class="text-blue-600 hover:text-blue-800 transition">
                             <i class="fas fa-eye mr-2"></i>
                             ログインせずに閲覧する
                         </a>
@@ -640,7 +643,7 @@ app.get('/login', (c) => {
                     });
 
                     if (response.data.success) {
-                        window.location.href = '/';
+                        window.location.href = '/edit';
                     }
                 } catch (error) {
                     errorMessage.classList.remove('hidden');
@@ -653,8 +656,8 @@ app.get('/login', (c) => {
   `)
 })
 
-// View-only page (read-only map)
-app.get('/view', (c) => {
+// Top page (public read-only map)
+app.get('/', (c) => {
   return c.html(`
     <!DOCTYPE html>
     <html lang="ja">
@@ -695,12 +698,11 @@ app.get('/view', (c) => {
                         肥後ジャーナルマップ
                     </h1>
                     <p class="text-gray-600">
-                        <i class="fas fa-eye mr-2"></i>
-                        閲覧専用モード - マーカーをクリックして詳細を確認できます
+                        マーカーをクリックして詳細を確認できます
                     </p>
                 </div>
-                <div class="flex gap-3" id="header-buttons">
-                    <!-- Buttons will be dynamically loaded based on auth status -->
+                <div id="header-buttons">
+                    <!-- Login link will be shown here for non-authenticated users -->
                 </div>
             </div>
 
@@ -752,33 +754,33 @@ app.get('/view', (c) => {
         <!-- Leaflet JS -->
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
-            // Check authentication status and show appropriate buttons
+            // Check authentication status and show appropriate links
             async function checkAuth() {
                 try {
                     const response = await axios.get('/api/auth/status');
                     const buttonsContainer = document.getElementById('header-buttons');
                     
                     if (response.data.authenticated) {
-                        // Show edit mode and admin buttons
+                        // Show edit mode and admin links for authenticated users
                         buttonsContainer.innerHTML = \`
-                            <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow hover:bg-gray-700 transition">
-                                <i class="fas fa-edit"></i>
-                                編集モード
-                            </a>
-                            <a href="/admin" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition">
-                                <i class="fas fa-cog"></i>
-                                管理画面
-                            </a>
-                            <button onclick="logout()" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow hover:bg-red-700 transition">
-                                <i class="fas fa-sign-out-alt"></i>
-                                ログアウト
-                            </button>
+                            <div class="flex items-center gap-4">
+                                <a href="/edit" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
+                                    <i class="fas fa-edit"></i>
+                                    編集モード
+                                </a>
+                                <a href="/admin" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition">
+                                    <i class="fas fa-cog"></i>
+                                    管理画面
+                                </a>
+                                <button onclick="logout()" class="text-sm text-gray-600 hover:text-gray-800 underline">
+                                    ログアウト
+                                </button>
+                            </div>
                         \`;
                     } else {
-                        // Show login button
+                        // Show small login link for non-authenticated users
                         buttonsContainer.innerHTML = \`
-                            <a href="/login" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
-                                <i class="fas fa-sign-in-alt"></i>
+                            <a href="/login" class="text-sm text-gray-600 hover:text-gray-800 underline">
                                 ログイン
                             </a>
                         \`;
@@ -806,8 +808,8 @@ app.get('/view', (c) => {
   `)
 })
 
-// Main page (requires authentication)
-app.get('/', requireAuth, (c) => {
+// Edit page (requires authentication)
+app.get('/edit', requireAuth, (c) => {
   return c.html(`
     <!DOCTYPE html>
     <html lang="ja">
@@ -858,17 +860,16 @@ app.get('/', requireAuth, (c) => {
                     <p class="text-gray-600">地図上をクリックして施設を登録してください</p>
                 </div>
                 <div class="flex gap-3">
-                    <a href="/view" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
+                    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
                         <i class="fas fa-eye"></i>
-                        閲覧専用
+                        閲覧モード
                     </a>
                     <a href="/admin" class="admin-button group relative inline-flex items-center gap-3 px-6 py-3 text-white font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
                         <i class="fas fa-cog relative z-10 text-lg group-hover:rotate-180 transition-transform duration-500"></i>
                         <span class="relative z-10 tracking-wide">管理画面</span>
                         <i class="fas fa-arrow-right relative z-10 group-hover:translate-x-1 transition-transform duration-300 text-sm"></i>
                     </a>
-                    <button onclick="logout()" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow hover:bg-red-700 transition">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <button onclick="logout()" class="text-sm text-gray-600 hover:text-gray-800 underline ml-4">
                         ログアウト
                     </button>
                 </div>
