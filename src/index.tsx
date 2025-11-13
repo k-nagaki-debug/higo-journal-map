@@ -661,7 +661,7 @@ app.get('/', (c) => {
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
             #map {
-                height: 600px;
+                height: 800px;
                 width: 100%;
                 position: relative;
                 z-index: 1;
@@ -685,10 +685,7 @@ app.get('/', (c) => {
         <div class="container mx-auto px-4 py-8">
             <div class="mb-8 flex justify-between items-center">
                 <div>
-                    <img src="/static/logo.png" alt="肥後ジャーナルマップ" class="h-16 mb-2">
-                    <p class="text-gray-600">
-                        マーカーをクリックして詳細を確認できます
-                    </p>
+                    <img src="/static/logo.png" alt="肥後ジャーナルマップ" class="h-16">
                 </div>
                 <div id="header-buttons">
                     <!-- Login link will be shown here for non-authenticated users -->
@@ -806,7 +803,7 @@ app.get('/edit', requireAuth, (c) => {
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
             #map {
-                height: 600px;
+                height: 800px;
                 width: 100%;
                 position: relative;
                 z-index: 1;
