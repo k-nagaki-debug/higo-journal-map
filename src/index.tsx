@@ -467,6 +467,117 @@ app.get('/admin', (c) => {
   `)
 })
 
+// View-only page (read-only map)
+app.get('/view', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>肥後ジャーナルマップ（閲覧専用） - Higo Journal Map</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <style>
+            #map {
+                height: 600px;
+                width: 100%;
+                position: relative;
+                z-index: 1;
+            }
+            .facility-card {
+                transition: all 0.3s ease;
+            }
+            .facility-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .line-clamp-2 {
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-50">
+        <div class="container mx-auto px-4 py-8">
+            <div class="mb-8 flex justify-between items-center">
+                <div>
+                    <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                        <i class="fas fa-map-marked-alt text-blue-600 mr-3"></i>
+                        肥後ジャーナルマップ
+                    </h1>
+                    <p class="text-gray-600">
+                        <i class="fas fa-eye mr-2"></i>
+                        閲覧専用モード - マーカーをクリックして詳細を確認できます
+                    </p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow hover:bg-gray-700 transition">
+                        <i class="fas fa-edit"></i>
+                        編集モード
+                    </a>
+                    <a href="/admin" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition">
+                        <i class="fas fa-cog"></i>
+                        管理画面
+                    </a>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
+                <div id="map" class="rounded-lg"></div>
+            </div>
+
+            <!-- Facility List -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-list mr-2"></i>
+                    登録施設一覧
+                </h2>
+                
+                <!-- Search and Filter -->
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">検索</label>
+                        <input type="text" id="map-search-input" placeholder="施設名で検索..." 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">カテゴリ</label>
+                        <select id="map-category-filter" 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">すべて</option>
+                            <option value="観光">観光</option>
+                            <option value="飲食">飲食</option>
+                            <option value="宿泊">宿泊</option>
+                            <option value="ショッピング">ショッピング</option>
+                            <option value="寺社">寺社</option>
+                            <option value="公園">公園</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="facility-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Facilities will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaflet CSS -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        <!-- Leaflet JS -->
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="/static/view.js"></script>
+    </body>
+    </html>
+  `)
+})
+
 // Main page
 app.get('/', (c) => {
   return c.html(`
@@ -518,11 +629,17 @@ app.get('/', (c) => {
                     </h1>
                     <p class="text-gray-600">地図上をクリックして施設を登録してください</p>
                 </div>
-                <a href="/admin" class="admin-button group relative inline-flex items-center gap-3 px-6 py-3 text-white font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
-                    <i class="fas fa-cog relative z-10 text-lg group-hover:rotate-180 transition-transform duration-500"></i>
-                    <span class="relative z-10 tracking-wide">管理画面</span>
-                    <i class="fas fa-arrow-right relative z-10 group-hover:translate-x-1 transition-transform duration-300 text-sm"></i>
-                </a>
+                <div class="flex gap-3">
+                    <a href="/view" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
+                        <i class="fas fa-eye"></i>
+                        閲覧専用
+                    </a>
+                    <a href="/admin" class="admin-button group relative inline-flex items-center gap-3 px-6 py-3 text-white font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                        <i class="fas fa-cog relative z-10 text-lg group-hover:rotate-180 transition-transform duration-500"></i>
+                        <span class="relative z-10 tracking-wide">管理画面</span>
+                        <i class="fas fa-arrow-right relative z-10 group-hover:translate-x-1 transition-transform duration-300 text-sm"></i>
+                    </a>
+                </div>
             </div>
 
             <!-- Map Container -->
