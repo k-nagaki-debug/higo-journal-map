@@ -56,7 +56,7 @@ app.post('/api/auth/login', async (c) => {
     const { username, password } = await c.req.json()
     
     const adminUsername = c.env.ADMIN_USERNAME || 'admin'
-    const adminPassword = c.env.ADMIN_PASSWORD || 'higo2024'
+    const adminPassword = c.env.ADMIN_PASSWORD || 'higo2025'
     
     if (username === adminUsername && password === adminPassword) {
       setCookie(c, 'session_token', 'authenticated', {
@@ -759,7 +759,7 @@ app.get('/', (c) => {
                     if (response.data.authenticated) {
                         // Show admin link and logout for authenticated users
                         buttonsContainer.innerHTML = \`
-                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-3">
                                 <a href="/admin" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition">
                                     <i class="fas fa-cog"></i>
                                     管理画面
@@ -852,10 +852,9 @@ app.get('/edit', requireAuth, (c) => {
                     <p class="text-gray-600">地図上をクリックして施設を登録してください</p>
                 </div>
                 <div class="flex gap-3 items-center">
-                    <a href="/admin" class="admin-button group relative inline-flex items-center gap-3 px-6 py-3 text-white font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
-                        <i class="fas fa-cog relative z-10 text-lg group-hover:rotate-180 transition-transform duration-500"></i>
-                        <span class="relative z-10 tracking-wide">管理画面</span>
-                        <i class="fas fa-arrow-right relative z-10 group-hover:translate-x-1 transition-transform duration-300 text-sm"></i>
+                    <a href="/admin" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition">
+                        <i class="fas fa-cog"></i>
+                        管理画面
                     </a>
                     <button onclick="logout()" class="text-sm text-gray-600 hover:text-gray-800 underline">
                         ログアウト
