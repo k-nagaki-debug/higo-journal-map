@@ -530,8 +530,15 @@ app.get('/admin', requireAuth, (c) => {
                     
                     <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2">住所</label>
-                        <input type="text" id="facility-address"
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="flex gap-2">
+                            <input type="text" id="facility-address"
+                                   class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="button" onclick="geocodeAddress()" 
+                                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition whitespace-nowrap">
+                                <i class="fas fa-map-marker-alt"></i> 座標取得
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">住所を入力して「座標取得」ボタンを押すと、自動的に緯度・経度が入力されます</p>
                     </div>
                     
                     <div class="mb-4">
@@ -700,6 +707,8 @@ app.get('/admin', requireAuth, (c) => {
             }
         </script>
         <script src="/static/admin.js"></script>
+        <!-- Google Maps API for geocoding -->
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCEzrU58Z2R4awlzt8kBitIIpW-wILqzSk&libraries=places"></script>
     </body>
     </html>
   `)
@@ -1095,8 +1104,15 @@ app.get('/edit', requireAuth, (c) => {
                     
                     <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2">住所</label>
-                        <input type="text" id="facility-address"
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="flex gap-2">
+                            <input type="text" id="facility-address"
+                                   class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="button" onclick="geocodeAddress()" 
+                                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition whitespace-nowrap">
+                                <i class="fas fa-map-marker-alt"></i> 座標取得
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">住所を入力して「座標取得」ボタンを押すと、自動的に緯度・経度が入力されます</p>
                     </div>
                     
                     <div class="mb-4">

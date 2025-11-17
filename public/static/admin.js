@@ -582,6 +582,50 @@ async function executeImport() {
     }
 }
 
+// Geocode address to get coordinates (for admin page)
+async function geocodeAddress() {
+    const addressInput = document.getElementById('facility-address');
+    const address = addressInput.value.trim();
+    
+    if (!address) {
+        showNotification('error', '住所を入力してください');
+        return;
+    }
+    
+    try {
+        // Use Google Maps Geocoding API
+        const geocoder = new google.maps.Geocoder();
+        
+        geocoder.geocode({ address: address }, (results, status) => {
+            if (status === 'OK' && results[0]) {
+                const location = results[0].geometry.location;
+                const lat = location.lat();
+                const lng = location.lng();
+                
+                // Set coordinates
+                document.getElementById('facility-lat').value = lat;
+                document.getElementById('facility-lng').value = lng;
+                
+                showNotification('success', `座標を取得しました！ 緯度: ${lat.toFixed(6)}, 経度: ${lng.toFixed(6)}`);
+            } else {
+                let errorMessage = '住所から座標を取得できませんでした。';
+                if (status === 'ZERO_RESULTS') {
+                    errorMessage = '指定された住所が見つかりませんでした。住所を確認してください。';
+                } else if (status === 'OVER_QUERY_LIMIT') {
+                    errorMessage = 'APIの利用制限に達しました。しばらく待ってから再度お試しください。';
+                } else if (status === 'REQUEST_DENIED') {
+                    errorMessage = 'ジオコーディングAPIが無効です。APIキーの設定を確認してください。';
+                }
+                showNotification('error', errorMessage);
+                console.error('Geocoding error:', status, results);
+            }
+        });
+    } catch (error) {
+        console.error('Error during geocoding:', error);
+        showNotification('error', 'ジオコーディング中にエラーが発生しました。');
+    }
+}
+
 // Make functions available globally
 window.showAddModal = showAddModal;
 window.closeModal = closeModal;
@@ -595,3 +639,4 @@ window.closeImportModal = closeImportModal;
 window.parseImportFile = parseImportFile;
 window.executeImport = executeImport;
 window.resetImport = resetImport;
+window.geocodeAddress = geocodeAddress;

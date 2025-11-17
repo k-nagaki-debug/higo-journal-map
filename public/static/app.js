@@ -448,6 +448,68 @@ function showNewFacilityForm() {
     showFacilityForm(null);
 }
 
+// Geocode address to get coordinates
+async function geocodeAddress() {
+    const addressInput = document.getElementById('facility-address');
+    const address = addressInput.value.trim();
+    
+    if (!address) {
+        alert('住所を入力してください');
+        return;
+    }
+    
+    try {
+        // Use Google Maps Geocoding API
+        const geocoder = new google.maps.Geocoder();
+        
+        geocoder.geocode({ address: address }, (results, status) => {
+            if (status === 'OK' && results[0]) {
+                const location = results[0].geometry.location;
+                const lat = location.lat();
+                const lng = location.lng();
+                
+                // Set coordinates
+                document.getElementById('facility-lat').value = lat;
+                document.getElementById('facility-lng').value = lng;
+                
+                // Show marker on map
+                if (currentFacilityMarker) {
+                    currentFacilityMarker.setMap(null);
+                }
+                
+                currentFacilityMarker = new google.maps.Marker({
+                    position: { lat: lat, lng: lng },
+                    map: map,
+                    icon: {
+                        url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                    },
+                    animation: google.maps.Animation.DROP
+                });
+                
+                // Center map on the location
+                map.setCenter({ lat: lat, lng: lng });
+                map.setZoom(15);
+                
+                alert(`座標を取得しました！\n緯度: ${lat.toFixed(6)}\n経度: ${lng.toFixed(6)}`);
+            } else {
+                let errorMessage = '住所から座標を取得できませんでした。';
+                if (status === 'ZERO_RESULTS') {
+                    errorMessage = '指定された住所が見つかりませんでした。住所を確認してください。';
+                } else if (status === 'OVER_QUERY_LIMIT') {
+                    errorMessage = 'APIの利用制限に達しました。しばらく待ってから再度お試しください。';
+                } else if (status === 'REQUEST_DENIED') {
+                    errorMessage = 'ジオコーディングAPIが無効です。APIキーの設定を確認してください。';
+                }
+                alert(errorMessage);
+                console.error('Geocoding error:', status, results);
+            }
+        });
+    } catch (error) {
+        console.error('Error during geocoding:', error);
+        alert('ジオコーディング中にエラーが発生しました。');
+    }
+}
+
 // Make functions available globally
 window.closeModal = closeModal;
 window.showNewFacilityForm = showNewFacilityForm;
@@ -455,3 +517,4 @@ window.editFacility = editFacility;
 window.deleteFacility = deleteFacility;
 window.focusOnFacility = focusOnFacility;
 window.removeImage = removeImage;
+window.geocodeAddress = geocodeAddress;
