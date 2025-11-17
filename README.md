@@ -53,14 +53,17 @@ facilities (施設テーブル)
 ├── name (TEXT) - 施設名 *必須
 ├── description (TEXT) - 説明
 ├── category (TEXT) - カテゴリ
-├── latitude (REAL) - 緯度 *必須
-├── longitude (REAL) - 経度 *必須
+├── latitude (REAL) - 緯度（任意）
+├── longitude (REAL) - 経度（任意）
 ├── address (TEXT) - 住所
 ├── phone (TEXT) - 電話番号
 ├── website (TEXT) - 記事リンク
+├── image_url (TEXT) - 画像URL
 ├── created_at (DATETIME) - 作成日時
 └── updated_at (DATETIME) - 更新日時
 ```
+
+**注**: 緯度・経度は任意項目です。座標がない場合、施設はリストには表示されますがマップ上にはマーカーが表示されません。
 
 ### ストレージサービス
 - **Cloudflare D1 Database**: SQLiteベースの分散データベース
@@ -162,7 +165,15 @@ pm2 logs webapp --nostream  # ログ確認
 npm run db:migrate:local    # マイグレーション実行
 npm run db:seed             # サンプルデータ挿入
 npm run db:reset            # DB初期化
+npm run db:backup           # ローカルDBをバックアップ
+npm run db:export           # 施設データをJSONエクスポート
 ```
+
+**⚠️ 重要: データバックアップについて**
+- `.wrangler`ディレクトリを削除すると**ローカルのデータベースも削除**されます
+- 開発中は定期的に`npm run db:backup`でバックアップを取ってください
+- バックアップは`backups/`ディレクトリに保存されます（最新10件を保持）
+- 本番環境（Cloudflare Pages）のデータは影響を受けません
 
 ### その他
 ```bash
