@@ -71,14 +71,17 @@ function updateMarkers() {
     markers = [];
     infoWindows = [];
     
-    // Add markers for filtered facilities
+    // Add markers for filtered facilities (only if they have coordinates)
     filteredFacilities.forEach(facility => {
-        addMarker(facility);
+        if (facility.latitude && facility.longitude) {
+            addMarker(facility);
+        }
     });
     
-    // Center map on filtered facilities if any exist
-    if (filteredFacilities.length > 0) {
-        centerMapOnFacilities(filteredFacilities);
+    // Center map on filtered facilities with coordinates
+    const facilitiesWithCoords = filteredFacilities.filter(f => f.latitude && f.longitude);
+    if (facilitiesWithCoords.length > 0) {
+        centerMapOnFacilities(facilitiesWithCoords);
     }
 }
 
@@ -148,15 +151,19 @@ async function loadFacilities() {
             allFacilities = response.data.data;
             filteredFacilities = [...allFacilities];
             
-            // Add markers to map
+            // Add markers to map (only if they have coordinates)
             allFacilities.forEach(facility => {
-                addMarker(facility);
+                if (facility.latitude && facility.longitude) {
+                    addMarker(facility);
+                }
             });
             
-            // Center map on all facilities
-            if (allFacilities.length > 0) {
-                centerMapOnFacilities(allFacilities);
+            // Center map on facilities with coordinates
+            const facilitiesWithCoords = allFacilities.filter(f => f.latitude && f.longitude);
+            if (facilitiesWithCoords.length > 0) {
+                centerMapOnFacilities(facilitiesWithCoords);
             }
+            // マップ位置はデフォルトのまま（熊本市中心）
             
             // Display facility list
             displayFacilityList(allFacilities);
@@ -180,8 +187,13 @@ function displayFacilityList(facilities) {
         return;
     }
     
-    listContainer.innerHTML = facilities.map(facility => `
-        <div class="facility-card bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md" onclick="focusOnFacility(${facility.id})">
+    listContainer.innerHTML = facilities.map(facility => {
+        const hasCoords = facility.latitude && facility.longitude;
+        const onclickAttr = hasCoords ? `onclick="focusOnFacility(${facility.id})"` : '';
+        const cursorClass = hasCoords ? 'cursor-pointer hover:shadow-md' : '';
+        
+        return `
+        <div class="facility-card bg-white rounded-lg shadow p-4 ${cursorClass}" ${onclickAttr}>
             ${facility.image_url ? `
                 <img src="${facility.image_url}" alt="${facility.name}" class="w-full h-32 object-cover rounded mb-3">
             ` : ''}
@@ -191,10 +203,12 @@ function displayFacilityList(facilities) {
                     ${facility.category}
                 </span>
             ` : ''}
+            ${!hasCoords ? `<span class="inline-block px-2 py-1 text-xs font-semibold rounded-full mb-2 bg-gray-100 text-gray-600"><i class="fas fa-map-marker-slash"></i> 位置情報なし</span>` : ''}
             ${facility.description ? `<p class="text-sm text-gray-600 mb-2 line-clamp-2">${facility.description}</p>` : ''}
             ${facility.address ? `<p class="text-xs text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i>${facility.address}</p>` : ''}
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Get category color
@@ -214,7 +228,7 @@ function getCategoryColor(category) {
 // Focus on specific facility
 function focusOnFacility(facilityId) {
     const facility = allFacilities.find(f => f.id === facilityId);
-    if (facility) {
+    if (facility && facility.latitude && facility.longitude) {
         map.setCenter({ lat: facility.latitude, lng: facility.longitude });
         map.setZoom(16);
         

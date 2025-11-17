@@ -191,8 +191,8 @@ app.post('/api/facilities', async (c) => {
     const body = await c.req.json()
     const { name, description, category, latitude, longitude, address, phone, website, image_url } = body
     
-    if (!name || !latitude || !longitude) {
-      return c.json({ success: false, error: 'Name, latitude, and longitude are required' }, 400)
+    if (!name) {
+      return c.json({ success: false, error: 'Name is required' }, 400)
     }
     
     const result = await c.env.DB.prepare(
@@ -533,23 +533,23 @@ app.get('/admin', requireAuth, (c) => {
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">緯度 *</label>
-                            <input type="number" step="any" id="facility-lat" required
-                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">経度 *</label>
-                            <input type="number" step="any" id="facility-lng" required
-                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
-                    
                     <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2">記事リンク</label>
                         <input type="url" id="facility-website"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-2">緯度</label>
+                            <input type="number" step="any" id="facility-lat" placeholder="例: 32.7898"
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-2">経度</label>
+                            <input type="number" step="any" id="facility-lng" placeholder="例: 130.7417"
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
                     </div>
                     
                     <div class="mb-6">
@@ -1001,9 +1001,12 @@ app.get('/edit', requireAuth, (c) => {
             <div class="mb-8 flex justify-between items-center">
                 <div>
                     <img src="/static/logo.png" alt="肥後ジャーナルマップ" class="h-16 mb-2">
-                    <p class="text-gray-600">地図上をクリックして施設を登録してください</p>
                 </div>
                 <div class="flex gap-3 items-center">
+                    <button onclick="showNewFacilityForm()" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
+                        <i class="fas fa-plus"></i>
+                        新規作成
+                    </button>
                     <a href="/admin" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition">
                         <i class="fas fa-cog"></i>
                         管理画面
@@ -1061,8 +1064,6 @@ app.get('/edit', requireAuth, (c) => {
                 <h3 class="text-2xl font-bold text-gray-800 mb-4" id="modal-title">新規施設登録</h3>
                 <form id="facility-form">
                     <input type="hidden" id="facility-id">
-                    <input type="hidden" id="facility-lat">
-                    <input type="hidden" id="facility-lng">
                     
                     <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2">施設名 *</label>
@@ -1107,6 +1108,19 @@ app.get('/edit', requireAuth, (c) => {
                         <label class="block text-gray-700 font-bold mb-2">記事リンク</label>
                         <input type="url" id="facility-website"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-2">緯度</label>
+                            <input type="number" step="any" id="facility-lat" placeholder="例: 32.7898"
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-2">経度</label>
+                            <input type="number" step="any" id="facility-lng" placeholder="例: 130.7417"
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
                     </div>
                     
                     <div class="mb-6">

@@ -1,0 +1,91 @@
+let map;
+let markers = [];
+let infoWindows = [];
+let currentFacilityMarker = null;
+let allFacilities = [];
+let filteredFacilities = [];
+
+// Initialize Google Map
+async function initMap() {
+    // Default center: Kumamoto City
+    const center = { lat: 32.7898, lng: 130.7417 };
+    
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: center,
+        zoom: 12,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true
+    });
+
+    // Add click listener to map
+    map.addListener('click', (event) => {
+        const latLng = {
+            lat: event.latLng.lat(),
+            lng: event.latLng.lng()
+        };
+        showFacilityForm(latLng);
+    });
+
+    // Load existing facilities and center map
+    await loadFacilities();
+    
+    // Setup search and filter listeners
+    setupSearchAndFilter();
+}
+
+// Setup search and filter event listeners
+function setupSearchAndFilter() {
+    const searchInput = document.getElementById('map-search-input');
+    const categoryFilter = document.getElementById('map-category-filter');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+    
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', applyFilters);
+    }
+}
+
+// Apply search and filter
+function applyFilters() {
+    const searchTerm = document.getElementById('map-search-input')?.value.toLowerCase() || '';
+    const selectedCategory = document.getElementById('map-category-filter')?.value || '';
+    
+    filteredFacilities = allFacilities.filter(facility => {
+        const matchesSearch = !searchTerm || 
+            facility.name.toLowerCase().includes(searchTerm) ||
+            (facility.description && facility.description.toLowerCase().includes(searchTerm)) ||
+            (facility.address && facility.address.toLowerCase().includes(searchTerm));
+        
+        const matchesCategory = !selectedCategory || facility.category === selectedCategory;
+        
+        return matchesSearch && matchesCategory;
+    });
+    
+    // Update markers on map
+    updateMarkers();
+    
+    // Update facility list
+    displayFacilityList(filteredFacilities);
+}
+
+// Update markers based on filtered facilities
+function updateMarkers() {
+    // Clear existing markers
+    markers.forEach(marker => marker.setMap(null));
+    infoWindows.forEach(infoWindow => infoWindow.close());
+    markers = [];
+    infoWindows = [];
+    
+    // Add markers for filtered facilities
+    filteredFacilities.forEach(facility => {
+        addMarker(facility);
+    });
+    
+    // Center map on filtered facilities if any exist
+    if (filteredFacilities.length > 0) {
+        centerMapOnFacilities(filteredFacilities);
+    }
+}
