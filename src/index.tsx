@@ -900,12 +900,10 @@ app.get('/', (c) => {
             </div>
         </div>
 
-        <!-- Leaflet CSS -->
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-        <!-- Leaflet JS -->
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="/static/view.js"></script>
+        <!-- Google Maps API -->
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCEzrU58Z2R4awlzt8kBitIIpW-wILqzSk&libraries=places&callback=initMap"></script>
         <script>
             // Check authentication status and show appropriate links
             async function checkAuth() {
@@ -1139,12 +1137,7 @@ app.get('/edit', requireAuth, (c) => {
             </div>
         </div>
 
-        <!-- Leaflet CSS -->
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-        <!-- Leaflet JS -->
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
             async function logout() {
                 try {
@@ -1157,6 +1150,8 @@ app.get('/edit', requireAuth, (c) => {
             }
         </script>
         <script src="/static/app.js"></script>
+        <!-- Google Maps API -->
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCEzrU58Z2R4awlzt8kBitIIpW-wILqzSk&libraries=places&callback=initMap"></script>
     </body>
     </html>
   `)

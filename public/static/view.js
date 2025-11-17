@@ -1,20 +1,21 @@
 let map;
 let markers = [];
+let infoWindows = [];
 let allFacilities = [];
 let filteredFacilities = [];
 
-// Initialize Leaflet Map (Read-only mode)
+// Initialize Google Map (Read-only mode)
 async function initMap() {
-    // Default center: Tokyo
-    const center = [35.6812, 139.7671];
+    // Default center: Kumamoto City
+    const center = { lat: 32.7898, lng: 130.7417 };
     
-    map = L.map('map').setView(center, 12);
-    
-    // Add OpenStreetMap tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(map);
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: center,
+        zoom: 12,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true
+    });
 
     // No click listener - read-only mode
 
@@ -24,9 +25,6 @@ async function initMap() {
     // Setup search and filter listeners
     setupSearchAndFilter();
 }
-
-// Initialize map when page loads
-document.addEventListener('DOMContentLoaded', initMap);
 
 // Setup search and filter event listeners
 function setupSearchAndFilter() {
@@ -68,8 +66,10 @@ function applyFilters() {
 // Update markers based on filtered facilities
 function updateMarkers() {
     // Clear existing markers
-    markers.forEach(marker => map.removeLayer(marker));
+    markers.forEach(marker => marker.setMap(null));
+    infoWindows.forEach(infoWindow => infoWindow.close());
     markers = [];
+    infoWindows = [];
     
     // Add markers for filtered facilities
     filteredFacilities.forEach(facility => {
@@ -84,24 +84,43 @@ function updateMarkers() {
 
 // Add marker to map (Read-only - no edit functionality)
 function addMarker(facility) {
-    const marker = L.marker([facility.latitude, facility.longitude])
-        .addTo(map);
+    const position = { lat: facility.latitude, lng: facility.longitude };
     
-    // Create popup content
-    const popupContent = `
-        <div style="min-width: 200px;">
-            <h3 style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">${facility.name}</h3>
+    const marker = new google.maps.Marker({
+        position: position,
+        map: map,
+        title: facility.name,
+        animation: google.maps.Animation.DROP
+    });
+    
+    // Create info window content
+    const infoContent = `
+        <div style="max-width: 300px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold; color: #1f2937;">${facility.name}</h3>
             ${facility.image_url ? `<img src="${facility.image_url}" alt="${facility.name}" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">` : ''}
-            ${facility.category ? `<p style="margin: 5px 0;"><strong>カテゴリ:</strong> ${facility.category}</p>` : ''}
-            ${facility.description ? `<p style="margin: 5px 0;">${facility.description}</p>` : ''}
-            ${facility.address ? `<p style="margin: 5px 0;"><strong>住所:</strong> ${facility.address}</p>` : ''}
-            ${facility.phone ? `<p style="margin: 5px 0;"><strong>電話:</strong> ${facility.phone}</p>` : ''}
-            ${facility.website ? `<p style="margin: 5px 0;"><a href="${facility.website}" target="_blank" style="color: #3b82f6;">記事を見る</a></p>` : ''}
+            ${facility.category ? `<p style="margin: 5px 0; color: #4b5563;"><strong>カテゴリ:</strong> ${facility.category}</p>` : ''}
+            ${facility.description ? `<p style="margin: 5px 0; color: #6b7280;">${facility.description}</p>` : ''}
+            ${facility.address ? `<p style="margin: 5px 0; color: #4b5563;"><strong>住所:</strong> ${facility.address}</p>` : ''}
+            ${facility.phone ? `<p style="margin: 5px 0; color: #4b5563;"><strong>電話:</strong> ${facility.phone}</p>` : ''}
+            ${facility.website ? `<p style="margin: 5px 0;"><a href="${facility.website}" target="_blank" style="color: #3b82f6; text-decoration: underline;">記事を見る</a></p>` : ''}
         </div>
     `;
     
-    marker.bindPopup(popupContent);
+    const infoWindow = new google.maps.InfoWindow({
+        content: infoContent
+    });
+    
+    marker.addListener('click', () => {
+        // Close all other info windows
+        infoWindows.forEach(iw => iw.close());
+        infoWindow.open(map, marker);
+    });
+    
     markers.push(marker);
+    infoWindows.push(infoWindow);
+    
+    // Store facility data with marker
+    marker.facilityData = facility;
 }
 
 // Center map on facilities
@@ -109,12 +128,14 @@ function centerMapOnFacilities(facilities) {
     if (facilities.length === 0) return;
     
     if (facilities.length === 1) {
-        map.setView([facilities[0].latitude, facilities[0].longitude], 14);
+        map.setCenter({ lat: facilities[0].latitude, lng: facilities[0].longitude });
+        map.setZoom(14);
     } else {
-        const bounds = L.latLngBounds(
-            facilities.map(f => [f.latitude, f.longitude])
-        );
-        map.fitBounds(bounds, { padding: [50, 50] });
+        const bounds = new google.maps.LatLngBounds();
+        facilities.forEach(f => {
+            bounds.extend({ lat: f.latitude, lng: f.longitude });
+        });
+        map.fitBounds(bounds);
     }
 }
 
@@ -194,16 +215,26 @@ function getCategoryColor(category) {
 function focusOnFacility(facilityId) {
     const facility = allFacilities.find(f => f.id === facilityId);
     if (facility) {
-        map.setView([facility.latitude, facility.longitude], 16);
+        map.setCenter({ lat: facility.latitude, lng: facility.longitude });
+        map.setZoom(16);
         
-        // Find and open the marker popup
-        const marker = markers.find(m => {
-            const latlng = m.getLatLng();
-            return latlng.lat === facility.latitude && latlng.lng === facility.longitude;
-        });
+        // Find and open the marker's info window
+        const marker = markers.find(m => m.facilityData && m.facilityData.id === facilityId);
+        const infoWindow = infoWindows[markers.indexOf(marker)];
         
-        if (marker) {
-            marker.openPopup();
+        if (marker && infoWindow) {
+            // Close all other info windows
+            infoWindows.forEach(iw => iw.close());
+            infoWindow.open(map, marker);
+            
+            // Add bounce animation
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+            setTimeout(() => {
+                marker.setAnimation(null);
+            }, 2000);
         }
     }
 }
+
+// Make focusOnFacility available globally
+window.focusOnFacility = focusOnFacility;

@@ -1,25 +1,30 @@
 let map;
 let markers = [];
+let infoWindows = [];
 let currentFacilityMarker = null;
 let allFacilities = [];
 let filteredFacilities = [];
 
-// Initialize Leaflet Map
+// Initialize Google Map
 async function initMap() {
-    // Default center: Tokyo
-    const center = [35.6812, 139.7671];
+    // Default center: Kumamoto City
+    const center = { lat: 32.7898, lng: 130.7417 };
     
-    map = L.map('map').setView(center, 12);
-    
-    // Add OpenStreetMap tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(map);
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: center,
+        zoom: 12,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true
+    });
 
     // Add click listener to map
-    map.on('click', (event) => {
-        showFacilityForm(event.latlng);
+    map.addListener('click', (event) => {
+        const latLng = {
+            lat: event.latLng.lat(),
+            lng: event.latLng.lng()
+        };
+        showFacilityForm(latLng);
     });
 
     // Load existing facilities and center map
@@ -28,9 +33,6 @@ async function initMap() {
     // Setup search and filter listeners
     setupSearchAndFilter();
 }
-
-// Initialize map when page loads
-document.addEventListener('DOMContentLoaded', initMap);
 
 // Setup search and filter event listeners
 function setupSearchAndFilter() {
@@ -72,8 +74,10 @@ function applyFilters() {
 // Update markers based on filtered facilities
 function updateMarkers() {
     // Clear existing markers
-    markers.forEach(marker => map.removeLayer(marker));
+    markers.forEach(marker => marker.setMap(null));
+    infoWindows.forEach(infoWindow => infoWindow.close());
     markers = [];
+    infoWindows = [];
     
     // Add markers for filtered facilities
     filteredFacilities.forEach(facility => {
@@ -124,21 +128,18 @@ function showFacilityForm(latLng, facilityData = null) {
         document.getElementById('facility-lat').value = latLng.lat;
         document.getElementById('facility-lng').value = latLng.lng;
         
-        // Show temporary marker
+        // Show temporary marker (blue)
         if (currentFacilityMarker) {
-            map.removeLayer(currentFacilityMarker);
+            currentFacilityMarker.setMap(null);
         }
         
-        const blueIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
+        currentFacilityMarker = new google.maps.Marker({
+            position: { lat: latLng.lat, lng: latLng.lng },
+            map: map,
+            icon: {
+                url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+            }
         });
-        
-        currentFacilityMarker = L.marker([latLng.lat, latLng.lng], { icon: blueIcon }).addTo(map);
     }
     
     modal.classList.remove('hidden');
@@ -151,7 +152,7 @@ function closeModal() {
     
     // Remove temporary marker
     if (currentFacilityMarker) {
-        map.removeLayer(currentFacilityMarker);
+        currentFacilityMarker.setMap(null);
         currentFacilityMarker = null;
     }
 }
@@ -244,8 +245,10 @@ async function loadFacilities() {
             filteredFacilities = [...allFacilities];
             
             // Clear existing markers
-            markers.forEach(marker => map.removeLayer(marker));
+            markers.forEach(marker => marker.setMap(null));
+            infoWindows.forEach(infoWindow => infoWindow.close());
             markers = [];
+            infoWindows = [];
             
             // Add markers for each facility
             filteredFacilities.forEach(facility => {
@@ -272,37 +275,49 @@ function centerMapOnFacilities(facilities) {
     if (facilities.length === 1) {
         // Single facility: center on it with zoom 15
         const facility = facilities[0];
-        map.setView([facility.latitude, facility.longitude], 15);
+        map.setCenter({ lat: facility.latitude, lng: facility.longitude });
+        map.setZoom(15);
     } else {
         // Multiple facilities: fit bounds to show all markers
-        const bounds = L.latLngBounds(
-            facilities.map(f => [f.latitude, f.longitude])
-        );
-        map.fitBounds(bounds, { padding: [50, 50] });
+        const bounds = new google.maps.LatLngBounds();
+        facilities.forEach(f => {
+            bounds.extend({ lat: f.latitude, lng: f.longitude });
+        });
+        map.fitBounds(bounds);
     }
 }
 
 // Add marker to map
 function addMarker(facility) {
-    const position = [facility.latitude, facility.longitude];
+    const position = { lat: facility.latitude, lng: facility.longitude };
     
-    // Custom red icon for saved facilities
-    const redIcon = L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
+    // Red marker for saved facilities
+    const marker = new google.maps.Marker({
+        position: position,
+        map: map,
+        title: facility.name,
+        icon: {
+            url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+        }
     });
     
-    const marker = L.marker(position, { icon: redIcon }).addTo(map);
+    // Create info window content
+    const infoContent = createPopupContent(facility);
+    const infoWindow = new google.maps.InfoWindow({
+        content: infoContent
+    });
     
-    // Create popup content
-    const popupContent = createPopupContent(facility);
-    marker.bindPopup(popupContent, { maxWidth: 300 });
+    marker.addListener('click', () => {
+        // Close all other info windows
+        infoWindows.forEach(iw => iw.close());
+        infoWindow.open(map, marker);
+    });
     
     markers.push(marker);
+    infoWindows.push(infoWindow);
+    
+    // Store facility data with marker
+    marker.facilityData = facility;
 }
 
 // Create popup content
@@ -311,11 +326,11 @@ function createPopupContent(facility) {
         `<span style="display: inline-block; background-color: #dbeafe; color: #1e40af; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${facility.category}</span>` : '';
     
     const imageHtml = facility.image_url ? 
-        `<img src="${facility.image_url}" alt="${facility.name}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 0.5rem; margin-top: 0.5rem;">` : '';
+        `<img src="${facility.image_url}" alt="${facility.name}" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 0.5rem; margin-top: 0.5rem;">` : '';
     
     return `
         <div style="max-width: 300px;">
-            <h3 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 0.5rem;">${facility.name}</h3>
+            <h3 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 0.5rem; color: #1f2937;">${facility.name}</h3>
             ${categoryBadge}
             ${imageHtml}
             ${facility.description ? `<p style="margin-top: 0.5rem; color: #374151;">${facility.description}</p>` : ''}
@@ -367,16 +382,24 @@ function displayFacilityList(facilities) {
 
 // Focus on facility when clicked from list
 function focusOnFacility(lat, lng) {
-    map.setView([lat, lng], 15);
+    map.setCenter({ lat: lat, lng: lng });
+    map.setZoom(15);
     
-    // Find and open the marker popup
-    const marker = markers.find(m => {
-        const pos = m.getLatLng();
-        return pos.lat === lat && pos.lng === lng;
-    });
+    // Find and open the marker's info window
+    const marker = markers.find(m => m.facilityData && 
+        m.facilityData.latitude === lat && m.facilityData.longitude === lng);
+    const infoWindow = infoWindows[markers.indexOf(marker)];
     
-    if (marker) {
-        marker.openPopup();
+    if (marker && infoWindow) {
+        // Close all other info windows
+        infoWindows.forEach(iw => iw.close());
+        infoWindow.open(map, marker);
+        
+        // Add bounce animation
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(() => {
+            marker.setAnimation(null);
+        }, 2000);
     }
 }
 
