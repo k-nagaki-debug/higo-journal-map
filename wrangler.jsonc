@@ -1,22 +1,23 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "webapp",
+  "name": "ys-reading-map",
   "compatibility_date": "2025-11-12",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [
     "nodejs_compat"
-  ],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "webapp-production",
-      "database_id": "local-dev"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "IMAGES",
-      "bucket_name": "higo-journal-map-images"
-    }
   ]
+  // D1 database and R2 bucket will be configured after manual creation in Cloudflare dashboard
+  // "d1_databases": [
+  //   {
+  //     "binding": "DB",
+  //     "database_name": "ys-reading-map-production",
+  //     "database_id": "YOUR_DATABASE_ID"
+  //   }
+  // ],
+  // "r2_buckets": [
+  //   {
+  //     "binding": "IMAGES",
+  //     "bucket_name": "ys-reading-map-images"
+  //   }
+  // ]
 }
