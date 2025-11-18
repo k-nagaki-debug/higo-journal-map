@@ -5,19 +5,12 @@
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ys-reading-map-production",
+      "database_id": "b7c82030-01c8-4118-969b-428ad946a064"
+    }
   ]
-  // D1 database and R2 bucket will be configured after manual creation in Cloudflare dashboard
-  // "d1_databases": [
-  //   {
-  //     "binding": "DB",
-  //     "database_name": "ys-reading-map-production",
-  //     "database_id": "YOUR_DATABASE_ID"
-  //   }
-  // ],
-  // "r2_buckets": [
-  //   {
-  //     "binding": "IMAGES",
-  //     "bucket_name": "ys-reading-map-images"
-  //   }
-  // ]
 }
