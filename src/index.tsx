@@ -906,18 +906,14 @@ app.get('/', (c) => {
                     <!-- Search and Filter -->
                     <div class="mb-4 space-y-3 flex-shrink-0">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">検索</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">施設名</label>
                             <input type="text" id="map-search-input" placeholder="施設名で検索..." 
                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">遠隔読影サービス</label>
-                            <select id="map-remote-reading-filter" 
-                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">すべて</option>
-                                <option value="has_service">遠隔読影あり</option>
-                                <option value="ys_reading">ワイズ・リーディング</option>
-                            </select>
+                            <input type="text" id="map-remote-reading-filter" placeholder="事業者名で検索..." 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                     
@@ -1064,18 +1060,14 @@ app.get('/edit', requireAuth, (c) => {
                     <!-- Search and Filter -->
                     <div class="mb-4 space-y-3 flex-shrink-0">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">検索</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">施設名</label>
                             <input type="text" id="map-search-input" placeholder="施設名で検索..." 
                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">遠隔読影サービス</label>
-                            <select id="map-remote-reading-filter" 
-                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">すべて</option>
-                                <option value="has_service">遠隔読影あり</option>
-                                <option value="ys_reading">ワイズ・リーディング</option>
-                            </select>
+                            <input type="text" id="map-remote-reading-filter" placeholder="事業者名で検索..." 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                     

@@ -36,27 +36,21 @@ function setupSearchAndFilter() {
     }
     
     if (remoteReadingFilter) {
-        remoteReadingFilter.addEventListener('change', applyFilters);
+        remoteReadingFilter.addEventListener('input', applyFilters);
     }
 }
 
 // Apply search and filter
 function applyFilters() {
     const searchTerm = document.getElementById('map-search-input')?.value.toLowerCase() || '';
-    const remoteReadingFilter = document.getElementById('map-remote-reading-filter')?.value || '';
+    const remoteReadingTerm = document.getElementById('map-remote-reading-filter')?.value.toLowerCase() || '';
     
     filteredHospitals = allHospitals.filter(hospital => {
         const matchesSearch = !searchTerm || 
-            hospital.name.toLowerCase().includes(searchTerm) ||
-            (hospital.description && hospital.description.toLowerCase().includes(searchTerm)) ||
-            (hospital.address && hospital.address.toLowerCase().includes(searchTerm));
+            hospital.name.toLowerCase().includes(searchTerm);
         
-        let matchesRemoteReading = true;
-        if (remoteReadingFilter === 'has_service') {
-            matchesRemoteReading = hospital.has_remote_reading === 1 || hospital.has_remote_reading === true;
-        } else if (remoteReadingFilter === 'ys_reading') {
-            matchesRemoteReading = hospital.remote_reading_provider && hospital.remote_reading_provider.includes('ワイズ・リーディング');
-        }
+        const matchesRemoteReading = !remoteReadingTerm || 
+            (hospital.remote_reading_provider && hospital.remote_reading_provider.toLowerCase().includes(remoteReadingTerm));
         
         return matchesSearch && matchesRemoteReading;
     });
