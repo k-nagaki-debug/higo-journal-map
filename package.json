@@ -1,5 +1,6 @@
 {
-  "name": "webapp",
+  "name": "ys-reading",
+  "description": "Y's READING - Hospital Map with Medical Imaging Modalities",
   "type": "module",
   "scripts": {
     "dev": "vite",

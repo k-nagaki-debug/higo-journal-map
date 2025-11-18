@@ -214,7 +214,12 @@ function showAddModal() {
     document.getElementById('hospital-lat').value = '';
     document.getElementById('hospital-lng').value = '';
     
-    // Reset emergency checkbox
+    // Reset checkboxes
+    document.getElementById('hospital-has-ct').checked = false;
+    document.getElementById('hospital-has-mri').checked = false;
+    document.getElementById('hospital-has-pet').checked = false;
+    document.getElementById('hospital-has-remote-reading').checked = false;
+    document.getElementById('hospital-remote-reading-provider').value = '';
     document.getElementById('hospital-emergency').checked = false;
     
     modal.classList.remove('hidden');
@@ -252,9 +257,11 @@ async function editFacility(hospitalId) {
             document.getElementById('hospital-lng').value = hospital.longitude || '';
             
             // Set hospital-specific fields
-            document.getElementById('hospital-business-hours').value = hospital.business_hours || '';
-            document.getElementById('hospital-closed-days').value = hospital.closed_days || '';
-            document.getElementById('hospital-parking').value = hospital.parking || '';
+            document.getElementById('hospital-has-ct').checked = hospital.has_ct === 1 || hospital.has_ct === true;
+            document.getElementById('hospital-has-mri').checked = hospital.has_mri === 1 || hospital.has_mri === true;
+            document.getElementById('hospital-has-pet').checked = hospital.has_pet === 1 || hospital.has_pet === true;
+            document.getElementById('hospital-has-remote-reading').checked = hospital.has_remote_reading === 1 || hospital.has_remote_reading === true;
+            document.getElementById('hospital-remote-reading-provider').value = hospital.remote_reading_provider || '';
             document.getElementById('hospital-emergency').checked = hospital.emergency === 1 || hospital.emergency === true;
             
             // Reset image preview
@@ -335,9 +342,11 @@ async function handleFormSubmit(e) {
             latitude: parseFloat(document.getElementById('hospital-lat').value) || null,
             longitude: parseFloat(document.getElementById('hospital-lng').value) || null,
             image_url: imageUrl || null,
-            business_hours: document.getElementById('hospital-business-hours').value || null,
-            closed_days: document.getElementById('hospital-closed-days').value || null,
-            parking: document.getElementById('hospital-parking').value || null,
+            has_ct: document.getElementById('hospital-has-ct').checked ? 1 : 0,
+            has_mri: document.getElementById('hospital-has-mri').checked ? 1 : 0,
+            has_pet: document.getElementById('hospital-has-pet').checked ? 1 : 0,
+            has_remote_reading: document.getElementById('hospital-has-remote-reading').checked ? 1 : 0,
+            remote_reading_provider: document.getElementById('hospital-remote-reading-provider').value || null,
             emergency: document.getElementById('hospital-emergency').checked ? 1 : 0
         };
         

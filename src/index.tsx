@@ -189,16 +189,20 @@ app.get('/api/images/:filename', async (c) => {
 app.post('/api/hospitals', async (c) => {
   try {
     const body = await c.req.json()
-    const { name, description, departments, latitude, longitude, address, phone, website, image_url, business_hours, closed_days, parking, emergency } = body
+    const { name, description, departments, latitude, longitude, address, phone, website, image_url, 
+            has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider, emergency } = body
     
     if (!name) {
       return c.json({ success: false, error: 'Name is required' }, 400)
     }
     
     const result = await c.env.DB.prepare(
-      `INSERT INTO hospitals (name, description, departments, latitude, longitude, address, phone, website, image_url, business_hours, closed_days, parking, emergency)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(name, description || null, departments || null, latitude, longitude, address || null, phone || null, website || null, image_url || null, business_hours || null, closed_days || null, parking || null, emergency || 0).run()
+      `INSERT INTO hospitals (name, description, departments, latitude, longitude, address, phone, website, image_url, 
+                              has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider, emergency)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(name, description || null, departments || null, latitude, longitude, address || null, phone || null, 
+           website || null, image_url || null, has_ct || 0, has_mri || 0, has_pet || 0, 
+           has_remote_reading || 0, remote_reading_provider || null, emergency || 0).run()
     
     return c.json({ 
       success: true, 
@@ -216,14 +220,19 @@ app.put('/api/hospitals/:id', async (c) => {
   
   try {
     const body = await c.req.json()
-    const { name, description, departments, latitude, longitude, address, phone, website, image_url, business_hours, closed_days, parking, emergency } = body
+    const { name, description, departments, latitude, longitude, address, phone, website, image_url, 
+            has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider, emergency } = body
     
     const result = await c.env.DB.prepare(
       `UPDATE hospitals 
        SET name = ?, description = ?, departments = ?, latitude = ?, longitude = ?, 
-           address = ?, phone = ?, website = ?, image_url = ?, business_hours = ?, closed_days = ?, parking = ?, emergency = ?, updated_at = CURRENT_TIMESTAMP
+           address = ?, phone = ?, website = ?, image_url = ?, 
+           has_ct = ?, has_mri = ?, has_pet = ?, has_remote_reading = ?, remote_reading_provider = ?, 
+           emergency = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`
-    ).bind(name, description || null, departments || null, latitude, longitude, address || null, phone || null, website || null, image_url || null, business_hours || null, closed_days || null, parking || null, emergency || 0, id).run()
+    ).bind(name, description || null, departments || null, latitude, longitude, address || null, phone || null, 
+           website || null, image_url || null, has_ct || 0, has_mri || 0, has_pet || 0, 
+           has_remote_reading || 0, remote_reading_provider || null, emergency || 0, id).run()
     
     if (result.meta.changes === 0) {
       return c.json({ success: false, error: 'Hospital not found' }, 404)
@@ -325,7 +334,7 @@ app.get('/admin', requireAuth, (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>全国病院マップ管理画面 - Hospital Map Admin</title>
+        <title>Y's READING 管理画面 - Admin</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
@@ -346,7 +355,7 @@ app.get('/admin', requireAuth, (c) => {
             <div class="container mx-auto px-4 py-4">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h1 class="text-2xl font-bold text-blue-600 mb-1">🏥 全国病院マップ</h1>
+                        <h1 class="text-2xl font-bold text-blue-600 mb-1"><img src="/static/ys-reading-logo.png" alt="Y's READING" class="h-8 inline-block"></h1>
                         <p class="text-sm text-gray-600 mt-1">Hospital Management Dashboard</p>
                     </div>
                     <div class="flex gap-3 items-center">
@@ -540,22 +549,30 @@ app.get('/admin', requireAuth, (c) => {
                         <p class="text-xs text-gray-500 mt-1">住所を入力して「座標取得」ボタンを押すと、自動的に緯度・経度が入力されます</p>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">診療時間</label>
-                            <input type="text" id="hospital-business-hours" placeholder="例: 平日 9:00-17:00"
-                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">休診日</label>
-                            <input type="text" id="hospital-closed-days" placeholder="例: 土日祝"
-                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-bold mb-2">医療機器（モダリティ）</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-ct" class="mr-2">
+                                <span class="text-gray-700">CTスキャン</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-mri" class="mr-2">
+                                <span class="text-gray-700">MRI</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-pet" class="mr-2">
+                                <span class="text-gray-700">PET</span>
+                            </label>
                         </div>
                     </div>
                     
                     <div class="mb-4">
-                        <label class="block text-gray-700 font-bold mb-2">駐車場</label>
-                        <input type="text" id="hospital-parking" placeholder="例: あり（50台）"
+                        <label class="flex items-center mb-2">
+                            <input type="checkbox" id="hospital-has-remote-reading" class="mr-2">
+                            <span class="text-gray-700 font-bold">遠隔読影サービス</span>
+                        </label>
+                        <input type="text" id="hospital-remote-reading-provider" placeholder="遠隔読影事業者名"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     
@@ -751,7 +768,7 @@ app.get('/login', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ログイン - 全国病院マップ</title>
+        <title>ログイン - Y's READING</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     </head>
@@ -760,7 +777,7 @@ app.get('/login', (c) => {
             <div class="max-w-md mx-auto">
                 <!-- Logo and Title -->
                 <div class="text-center mb-8">
-                    <h1 class="text-4xl font-bold text-blue-600 mb-2">🏥 全国病院マップ</h1>
+                    <h1 class="text-4xl font-bold mb-2"><img src="/static/ys-reading-logo.png" alt="Y's READING" class="h-12 inline-block"></h1>
                     <p class="text-gray-600">管理者ログイン</p>
                 </div>
 
@@ -857,7 +874,7 @@ app.get('/', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>全国病院マップ（閲覧専用） - Japan Hospital Map</title>
+        <title>Y's READING（閲覧専用）</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
@@ -886,8 +903,7 @@ app.get('/', (c) => {
         <div class="container mx-auto px-4 py-8">
             <div class="mb-8 flex justify-between items-center">
                 <div>
-                    <h1 class="text-4xl font-bold text-blue-600">🏥 全国病院マップ</h1>
-                    <p class="text-gray-600 mt-1">Japan Hospital Map</p>
+                    <h1 class="text-4xl font-bold"><img src="/static/ys-reading-logo.png" alt="Y's READING" class="h-12 inline-block"></h1>
                 </div>
                 <div id="header-buttons">
                     <!-- Login link will be shown here for non-authenticated users -->
@@ -998,7 +1014,7 @@ app.get('/edit', requireAuth, (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>全国病院マップ - Japan Hospital Map</title>
+        <title>Y's READING - 編集モード</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
@@ -1035,8 +1051,8 @@ app.get('/edit', requireAuth, (c) => {
         <div class="container mx-auto px-4 py-8">
             <div class="mb-8 flex justify-between items-center">
                 <div>
-                    <h1 class="text-4xl font-bold text-blue-600 mb-1">🏥 全国病院マップ</h1>
-                    <p class="text-gray-600">Japan Hospital Map - 編集モード</p>
+                    <h1 class="text-4xl font-bold mb-1"><img src="/static/ys-reading-logo.png" alt="Y's READING" class="h-12 inline-block"></h1>
+                    <p class="text-gray-600">編集モード</p>
                 </div>
                 <div class="flex gap-3 items-center">
                     <button onclick="showNewHospitalForm()" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
@@ -1140,20 +1156,29 @@ app.get('/edit', requireAuth, (c) => {
                     </div>
                     
                     <div class="mb-4">
-                        <label class="block text-gray-700 font-bold mb-2">診療時間</label>
-                        <input type="text" id="hospital-business-hours" placeholder="例: 平日 9:00-17:00"
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-gray-700 font-bold mb-2">医療機器（モダリティ）</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-ct" class="mr-2">
+                                <span class="text-gray-700">CTスキャン</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-mri" class="mr-2">
+                                <span class="text-gray-700">MRI</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-pet" class="mr-2">
+                                <span class="text-gray-700">PET</span>
+                            </label>
+                        </div>
                     </div>
                     
                     <div class="mb-4">
-                        <label class="block text-gray-700 font-bold mb-2">休診日</label>
-                        <input type="text" id="hospital-closed-days" placeholder="例: 土日祝"
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="block text-gray-700 font-bold mb-2">駐車場</label>
-                        <input type="text" id="hospital-parking" placeholder="例: あり（50台）"
+                        <label class="flex items-center mb-2">
+                            <input type="checkbox" id="hospital-has-remote-reading" class="mr-2">
+                            <span class="text-gray-700 font-bold">遠隔読影サービス</span>
+                        </label>
+                        <input type="text" id="hospital-remote-reading-provider" placeholder="遠隔読影事業者名"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     

@@ -102,16 +102,24 @@ function showHospitalForm(latLng, hospitalData = null) {
     
     if (hospitalData) {
         // Edit mode
-        modalTitle.textContent = '施設情報編集';
+        modalTitle.textContent = '病院情報編集';
         document.getElementById('hospital-id').value = hospitalData.id;
         document.getElementById('hospital-name').value = hospitalData.name;
-        document.getElementById('hospital-departments').value = hospitalData.category || '';
+        document.getElementById('hospital-departments').value = hospitalData.departments || '';
         document.getElementById('hospital-description').value = hospitalData.description || '';
         document.getElementById('hospital-address').value = hospitalData.address || '';
         document.getElementById('hospital-phone').value = hospitalData.phone || '';
         document.getElementById('hospital-website').value = hospitalData.website || '';
         document.getElementById('hospital-lat').value = hospitalData.latitude || '';
         document.getElementById('hospital-lng').value = hospitalData.longitude || '';
+        
+        // Set modality checkboxes
+        document.getElementById('hospital-has-ct').checked = hospitalData.has_ct === 1 || hospitalData.has_ct === true;
+        document.getElementById('hospital-has-mri').checked = hospitalData.has_mri === 1 || hospitalData.has_mri === true;
+        document.getElementById('hospital-has-pet').checked = hospitalData.has_pet === 1 || hospitalData.has_pet === true;
+        document.getElementById('hospital-has-remote-reading').checked = hospitalData.has_remote_reading === 1 || hospitalData.has_remote_reading === true;
+        document.getElementById('hospital-remote-reading-provider').value = hospitalData.remote_reading_provider || '';
+        document.getElementById('hospital-emergency').checked = hospitalData.emergency === 1 || hospitalData.emergency === true;
         
         // Show existing image if available
         if (hospitalData.image_url) {
@@ -121,10 +129,18 @@ function showHospitalForm(latLng, hospitalData = null) {
         }
     } else {
         // Create mode
-        modalTitle.textContent = '新規施設登録';
+        modalTitle.textContent = '新規病院登録';
         // 緯度・経度は空のまま（ユーザーが入力可能）
         document.getElementById('hospital-lat').value = '';
         document.getElementById('hospital-lng').value = '';
+        
+        // Reset all checkboxes
+        document.getElementById('hospital-has-ct').checked = false;
+        document.getElementById('hospital-has-mri').checked = false;
+        document.getElementById('hospital-has-pet').checked = false;
+        document.getElementById('hospital-has-remote-reading').checked = false;
+        document.getElementById('hospital-remote-reading-provider').value = '';
+        document.getElementById('hospital-emergency').checked = false;
         
         // マップクリックから呼び出された場合は一時マーカーを削除
         if (currentHospitalMarker) {
@@ -199,14 +215,20 @@ document.getElementById('hospital-form').addEventListener('submit', async (e) =>
         
         const hospitalData = {
             name: document.getElementById('hospital-name').value,
-            category: document.getElementById('hospital-departments').value,
+            departments: document.getElementById('hospital-departments').value,
             description: document.getElementById('hospital-description').value,
             address: document.getElementById('hospital-address').value,
             phone: document.getElementById('hospital-phone').value,
             website: document.getElementById('hospital-website').value,
             latitude: latValue ? parseFloat(latValue) : null,
             longitude: lngValue ? parseFloat(lngValue) : null,
-            image_url: imageUrl || null
+            image_url: imageUrl || null,
+            has_ct: document.getElementById('hospital-has-ct').checked ? 1 : 0,
+            has_mri: document.getElementById('hospital-has-mri').checked ? 1 : 0,
+            has_pet: document.getElementById('hospital-has-pet').checked ? 1 : 0,
+            has_remote_reading: document.getElementById('hospital-has-remote-reading').checked ? 1 : 0,
+            remote_reading_provider: document.getElementById('hospital-remote-reading-provider').value || null,
+            emergency: document.getElementById('hospital-emergency').checked ? 1 : 0
         };
         
         let response;
@@ -221,11 +243,11 @@ document.getElementById('hospital-form').addEventListener('submit', async (e) =>
         if (response.data.success) {
             closeModal();
             await loadHospitals();
-            alert(hospitalId ? '施設情報を更新しました' : '施設を登録しました');
+            alert(hospitalId ? '病院情報を更新しました' : '病院を登録しました');
         }
     } catch (error) {
-        console.error('Error saving facility:', error);
-        alert('施設の保存に失敗しました');
+        console.error('Error saving hospital:', error);
+        alert('病院の保存に失敗しました');
     }
 });
 
