@@ -314,12 +314,12 @@ function addMarker(hospital) {
     // Determine marker icon
     let markerIcon;
     if (hospital.remote_reading_provider && hospital.remote_reading_provider.includes('ワイズ・リーディング')) {
-        // Special icon for Y's READING hospitals
+        // Special SVG icon for Y's READING hospitals
         markerIcon = {
-            url: '/static/ys-reading-pin.png',
-            scaledSize: new google.maps.Size(40, 40),
+            url: '/static/ys-reading-pin.svg',
+            scaledSize: new google.maps.Size(40, 56),
             origin: new google.maps.Point(0, 0),
-            anchor: new google.maps.Point(20, 40)
+            anchor: new google.maps.Point(20, 56)
         };
     } else {
         // Red marker for saved facilities
