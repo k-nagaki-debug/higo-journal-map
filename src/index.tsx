@@ -879,8 +879,6 @@ app.get('/', (c) => {
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
             #map {
-                height: 800px;
-                width: 100%;
                 position: relative;
                 z-index: 1;
             }
@@ -910,43 +908,49 @@ app.get('/', (c) => {
                 </div>
             </div>
 
-            <!-- Map Container -->
-            <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
-                <div id="map" class="rounded-lg"></div>
-            </div>
-
-            <!-- Facility List -->
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">
-                    <i class="fas fa-list mr-2"></i>
-                    登録施設一覧
-                </h2>
-                
-                <!-- Search and Filter -->
-                <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">検索</label>
-                        <input type="text" id="map-search-input" placeholder="施設名で検索..." 
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">カテゴリ</label>
-                        <select id="map-category-filter" 
-                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">すべて</option>
-                            <option value="観光">観光</option>
-                            <option value="飲食">飲食</option>
-                            <option value="宿泊">宿泊</option>
-                            <option value="ショッピング">ショッピング</option>
-                            <option value="寺社">寺社</option>
-                            <option value="公園">公園</option>
-                            <option value="その他">その他</option>
-                        </select>
-                    </div>
+            <!-- Map and Facility List Container (Horizontal Layout) -->
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Map Container (Left Side) -->
+                <div class="flex-1 bg-white rounded-lg shadow-lg p-4">
+                    <div id="map" class="rounded-lg" style="height: 700px; width: 100%;"></div>
                 </div>
-                
-                <div id="hospital-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Hospitals will be loaded here -->
+
+                <!-- Facility List (Right Side - Vertical Panel) -->
+                <div class="lg:w-96 bg-white rounded-lg shadow-lg p-6 flex flex-col" style="max-height: 748px;">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex-shrink-0">
+                        <i class="fas fa-list mr-2"></i>
+                        登録施設一覧
+                    </h2>
+                    
+                    <!-- Search and Filter -->
+                    <div class="mb-4 space-y-3 flex-shrink-0">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">検索</label>
+                            <input type="text" id="map-search-input" placeholder="施設名で検索..." 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">カテゴリ</label>
+                            <select id="map-category-filter" 
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">すべて</option>
+                                <option value="観光">観光</option>
+                                <option value="飲食">飲食</option>
+                                <option value="宿泊">宿泊</option>
+                                <option value="ショッピング">ショッピング</option>
+                                <option value="寺社">寺社</option>
+                                <option value="公園">公園</option>
+                                <option value="その他">その他</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Scrollable Facility List -->
+                    <div class="flex-1 overflow-y-auto pr-2">
+                        <div id="hospital-list" class="space-y-3">
+                            <!-- Hospitals will be loaded here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1019,8 +1023,6 @@ app.get('/edit', requireAuth, (c) => {
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
             #map {
-                height: 800px;
-                width: 100%;
                 position: relative;
                 z-index: 1;
             }
@@ -1069,43 +1071,49 @@ app.get('/edit', requireAuth, (c) => {
                 </div>
             </div>
 
-            <!-- Map Container -->
-            <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
-                <div id="map" class="rounded-lg"></div>
-            </div>
-
-            <!-- Facility List -->
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">
-                    <i class="fas fa-list mr-2"></i>
-                    登録施設一覧
-                </h2>
-                
-                <!-- Search and Filter -->
-                <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">検索</label>
-                        <input type="text" id="map-search-input" placeholder="施設名で検索..." 
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">カテゴリ</label>
-                        <select id="map-category-filter" 
-                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">すべて</option>
-                            <option value="観光">観光</option>
-                            <option value="飲食">飲食</option>
-                            <option value="宿泊">宿泊</option>
-                            <option value="ショッピング">ショッピング</option>
-                            <option value="寺社">寺社</option>
-                            <option value="公園">公園</option>
-                            <option value="その他">その他</option>
-                        </select>
-                    </div>
+            <!-- Map and Facility List Container (Horizontal Layout) -->
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Map Container (Left Side) -->
+                <div class="flex-1 bg-white rounded-lg shadow-lg p-4">
+                    <div id="map" class="rounded-lg" style="height: 700px; width: 100%;"></div>
                 </div>
-                
-                <div id="hospital-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Hospitals will be loaded here -->
+
+                <!-- Facility List (Right Side - Vertical Panel) -->
+                <div class="lg:w-96 bg-white rounded-lg shadow-lg p-6 flex flex-col" style="max-height: 748px;">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex-shrink-0">
+                        <i class="fas fa-list mr-2"></i>
+                        登録施設一覧
+                    </h2>
+                    
+                    <!-- Search and Filter -->
+                    <div class="mb-4 space-y-3 flex-shrink-0">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">検索</label>
+                            <input type="text" id="map-search-input" placeholder="施設名で検索..." 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">カテゴリ</label>
+                            <select id="map-category-filter" 
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">すべて</option>
+                                <option value="観光">観光</option>
+                                <option value="飲食">飲食</option>
+                                <option value="宿泊">宿泊</option>
+                                <option value="ショッピング">ショッピング</option>
+                                <option value="寺社">寺社</option>
+                                <option value="公園">公園</option>
+                                <option value="その他">その他</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Scrollable Facility List -->
+                    <div class="flex-1 overflow-y-auto pr-2">
+                        <div id="hospital-list" class="space-y-3">
+                            <!-- Hospitals will be loaded here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
