@@ -119,7 +119,6 @@ function showHospitalForm(latLng, hospitalData = null) {
         document.getElementById('hospital-has-pet').checked = hospitalData.has_pet === 1 || hospitalData.has_pet === true;
         document.getElementById('hospital-has-remote-reading').checked = hospitalData.has_remote_reading === 1 || hospitalData.has_remote_reading === true;
         document.getElementById('hospital-remote-reading-provider').value = hospitalData.remote_reading_provider || '';
-        document.getElementById('hospital-emergency').checked = hospitalData.emergency === 1 || hospitalData.emergency === true;
         
         // Show existing image if available
         if (hospitalData.image_url) {
@@ -140,7 +139,6 @@ function showHospitalForm(latLng, hospitalData = null) {
         document.getElementById('hospital-has-pet').checked = false;
         document.getElementById('hospital-has-remote-reading').checked = false;
         document.getElementById('hospital-remote-reading-provider').value = '';
-        document.getElementById('hospital-emergency').checked = false;
         
         // マップクリックから呼び出された場合は一時マーカーを削除
         if (currentHospitalMarker) {
@@ -227,8 +225,7 @@ document.getElementById('hospital-form').addEventListener('submit', async (e) =>
             has_mri: document.getElementById('hospital-has-mri').checked ? 1 : 0,
             has_pet: document.getElementById('hospital-has-pet').checked ? 1 : 0,
             has_remote_reading: document.getElementById('hospital-has-remote-reading').checked ? 1 : 0,
-            remote_reading_provider: document.getElementById('hospital-remote-reading-provider').value || null,
-            emergency: document.getElementById('hospital-emergency').checked ? 1 : 0
+            remote_reading_provider: document.getElementById('hospital-remote-reading-provider').value || null
         };
         
         let response;

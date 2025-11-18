@@ -100,8 +100,6 @@ function addMarker(hospital) {
             origin: new google.maps.Point(0, 0),
             anchor: new google.maps.Point(20, 56)
         };
-    } else if (hospital.emergency) {
-        markerIcon = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
     }
     
     const marker = new google.maps.Marker({
@@ -131,7 +129,6 @@ function addMarker(hospital) {
         <div style="max-width: 300px;">
             <h3 style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold; color: #1f2937;">
                 ${hospital.name}
-                ${hospital.emergency ? '<span style="color: #ef4444; font-size: 12px;">🚑 救急対応</span>' : ''}
             </h3>
             ${hospital.image_url ? `<img src="${hospital.image_url}" alt="${hospital.name}" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">` : ''}
             ${hospital.departments ? `<p style="margin: 5px 0; color: #4b5563;"><strong>診療科目:</strong> ${hospital.departments}</p>` : ''}
@@ -234,7 +231,6 @@ function displayHospitalList(hospitals) {
             ` : ''}
             <h3 class="text-lg font-bold text-gray-800 mb-2">
                 ${hospital.name}
-                ${hospital.emergency ? '<span class="text-red-500 text-xs ml-1">🚑</span>' : ''}
             </h3>
             ${hospital.departments ? `
                 <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full mb-2 bg-blue-100 text-blue-800">

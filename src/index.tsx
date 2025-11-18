@@ -190,7 +190,7 @@ app.post('/api/hospitals', async (c) => {
   try {
     const body = await c.req.json()
     const { name, description, departments, latitude, longitude, address, phone, website, image_url, 
-            has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider, emergency } = body
+            has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider } = body
     
     if (!name) {
       return c.json({ success: false, error: 'Name is required' }, 400)
@@ -198,11 +198,11 @@ app.post('/api/hospitals', async (c) => {
     
     const result = await c.env.DB.prepare(
       `INSERT INTO hospitals (name, description, departments, latitude, longitude, address, phone, website, image_url, 
-                              has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider, emergency)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                              has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(name, description || null, departments || null, latitude, longitude, address || null, phone || null, 
            website || null, image_url || null, has_ct || 0, has_mri || 0, has_pet || 0, 
-           has_remote_reading || 0, remote_reading_provider || null, emergency || 0).run()
+           has_remote_reading || 0, remote_reading_provider || null).run()
     
     return c.json({ 
       success: true, 
@@ -221,18 +221,18 @@ app.put('/api/hospitals/:id', async (c) => {
   try {
     const body = await c.req.json()
     const { name, description, departments, latitude, longitude, address, phone, website, image_url, 
-            has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider, emergency } = body
+            has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider } = body
     
     const result = await c.env.DB.prepare(
       `UPDATE hospitals 
        SET name = ?, description = ?, departments = ?, latitude = ?, longitude = ?, 
            address = ?, phone = ?, website = ?, image_url = ?, 
            has_ct = ?, has_mri = ?, has_pet = ?, has_remote_reading = ?, remote_reading_provider = ?, 
-           emergency = ?, updated_at = CURRENT_TIMESTAMP
+           updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`
     ).bind(name, description || null, departments || null, latitude, longitude, address || null, phone || null, 
            website || null, image_url || null, has_ct || 0, has_mri || 0, has_pet || 0, 
-           has_remote_reading || 0, remote_reading_provider || null, emergency || 0, id).run()
+           has_remote_reading || 0, remote_reading_provider || null, id).run()
     
     if (result.meta.changes === 0) {
       return c.json({ success: false, error: 'Hospital not found' }, 404)
@@ -416,17 +416,6 @@ app.get('/admin', requireAuth, (c) => {
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm">救急対応</p>
-                            <p id="emergency-count" class="text-3xl font-bold text-gray-800">0</p>
-                        </div>
-                        <div class="bg-red-100 p-3 rounded-full">
-                            <i class="fas fa-ambulance text-red-600 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Filters -->
@@ -486,7 +475,6 @@ app.get('/admin', requireAuth, (c) => {
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">診療科目</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">住所</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">電話番号</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">救急</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">操作</th>
                             </tr>
                         </thead>
@@ -574,13 +562,6 @@ app.get('/admin', requireAuth, (c) => {
                         </label>
                         <input type="text" id="hospital-remote-reading-provider" placeholder="遠隔読影事業者名"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="flex items-center">
-                            <input type="checkbox" id="hospital-emergency" class="mr-2">
-                            <span class="text-gray-700 font-bold">救急対応可能</span>
-                        </label>
                     </div>
                     
                     <div class="mb-4">
@@ -1188,13 +1169,6 @@ app.get('/edit', requireAuth, (c) => {
                         </label>
                         <input type="text" id="hospital-remote-reading-provider" placeholder="遠隔読影事業者名"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="flex items-center">
-                            <input type="checkbox" id="hospital-emergency" class="mr-2">
-                            <span class="text-gray-700 font-bold">救急対応可能</span>
-                        </label>
                     </div>
                     
                     <div class="mb-4">

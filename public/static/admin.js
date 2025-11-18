@@ -138,9 +138,6 @@ function displayHospitals() {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ${hospital.phone || '<span class="text-gray-400">-</span>'}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    ${hospital.emergency ? '<span class="status-badge bg-red-100 text-red-800"><i class="fas fa-ambulance"></i> 対応可</span>' : '<span class="text-gray-400">-</span>'}
-                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button onclick="viewOnMap(${hospital.latitude}, ${hospital.longitude})" 
                             class="text-green-600 hover:text-green-900 mr-3" title="地図で表示">
@@ -165,12 +162,9 @@ function updateHospitalStats() {
     const totalCount = allHospitals.length;
     const internalCount = allHospitals.filter(h => h.departments && h.departments.includes('内科')).length;
     const pediatricCount = allHospitals.filter(h => h.departments && h.departments.includes('小児科')).length;
-    const emergencyCount = allHospitals.filter(h => h.emergency === 1 || h.emergency === true).length;
-    
     document.getElementById('total-count').textContent = totalCount;
     document.getElementById('internal-count').textContent = internalCount;
     document.getElementById('pediatric-count').textContent = pediatricCount;
-    document.getElementById('emergency-count').textContent = emergencyCount;
 }
 
 // Handle image file selection
@@ -220,7 +214,6 @@ function showAddModal() {
     document.getElementById('hospital-has-pet').checked = false;
     document.getElementById('hospital-has-remote-reading').checked = false;
     document.getElementById('hospital-remote-reading-provider').value = '';
-    document.getElementById('hospital-emergency').checked = false;
     
     modal.classList.remove('hidden');
 }
@@ -262,7 +255,6 @@ async function editFacility(hospitalId) {
             document.getElementById('hospital-has-pet').checked = hospital.has_pet === 1 || hospital.has_pet === true;
             document.getElementById('hospital-has-remote-reading').checked = hospital.has_remote_reading === 1 || hospital.has_remote_reading === true;
             document.getElementById('hospital-remote-reading-provider').value = hospital.remote_reading_provider || '';
-            document.getElementById('hospital-emergency').checked = hospital.emergency === 1 || hospital.emergency === true;
             
             // Reset image preview
             document.getElementById('image-preview').classList.add('hidden');
@@ -346,8 +338,7 @@ async function handleFormSubmit(e) {
             has_mri: document.getElementById('hospital-has-mri').checked ? 1 : 0,
             has_pet: document.getElementById('hospital-has-pet').checked ? 1 : 0,
             has_remote_reading: document.getElementById('hospital-has-remote-reading').checked ? 1 : 0,
-            remote_reading_provider: document.getElementById('hospital-remote-reading-provider').value || null,
-            emergency: document.getElementById('hospital-emergency').checked ? 1 : 0
+            remote_reading_provider: document.getElementById('hospital-remote-reading-provider').value || null
         };
         
         console.log('Hospital data:', hospitalData);
