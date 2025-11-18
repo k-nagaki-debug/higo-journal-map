@@ -494,7 +494,7 @@ app.get('/admin', requireAuth, (c) => {
         </main>
 
         <!-- Add/Edit Modal -->
-        <div id="facility-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div id="hospital-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <h3 class="text-2xl font-bold text-gray-800 mb-4" id="modal-title">新規病院登録</h3>
                 <form id="hospital-form">
