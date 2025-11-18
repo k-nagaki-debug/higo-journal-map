@@ -396,9 +396,13 @@ app.get('/admin', requireAuth, (c) => {
                 </div>
                 <div class="bg-white rounded-lg shadow p-6">
                     <div class="flex items-center justify-between">
-                        <div>
+                        <div class="flex-1">
                             <p class="text-gray-600 text-sm">遠隔読影サービス</p>
                             <p id="remote-reading-count" class="text-3xl font-bold text-gray-800">0</p>
+                            <p class="text-sm text-gray-500 mt-2">
+                                <span class="font-semibold">ワイズ・リーディング</span>
+                                <span id="ys-reading-count" class="ml-2 font-bold text-purple-600">0</span>
+                            </p>
                         </div>
                         <div class="bg-purple-100 p-3 rounded-full">
                             <i class="fas fa-network-wired text-purple-600 text-xl"></i>

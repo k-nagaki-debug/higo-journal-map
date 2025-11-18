@@ -161,8 +161,10 @@ function displayHospitals() {
 function updateHospitalStats() {
     const totalCount = allHospitals.length;
     const remoteReadingCount = allHospitals.filter(h => h.has_remote_reading === 1 || h.has_remote_reading === true).length;
+    const ysReadingCount = allHospitals.filter(h => h.remote_reading_provider && h.remote_reading_provider.includes('ワイズ・リーディング')).length;
     document.getElementById('total-count').textContent = totalCount;
     document.getElementById('remote-reading-count').textContent = remoteReadingCount;
+    document.getElementById('ys-reading-count').textContent = ysReadingCount;
 }
 
 // Handle image file selection
