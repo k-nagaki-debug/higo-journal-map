@@ -347,6 +347,16 @@ app.get('/admin', requireAuth, (c) => {
                 font-size: 0.75rem;
                 font-weight: 600;
             }
+            /* Make map and list container responsive to viewport height */
+            .map-container {
+                height: calc(100vh - 200px);
+                min-height: 500px;
+            }
+            @media (max-width: 1023px) {
+                .map-container {
+                    height: 500px;
+                }
+            }
         </style>
     </head>
     <body class="bg-gray-50">
@@ -876,6 +886,16 @@ app.get('/', (c) => {
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
             }
+            /* Make map and list container responsive to viewport height */
+            .map-container {
+                height: calc(100vh - 200px);
+                min-height: 500px;
+            }
+            @media (max-width: 1023px) {
+                .map-container {
+                    height: 500px;
+                }
+            }
         </style>
     </head>
     <body class="bg-gray-50">
@@ -890,14 +910,14 @@ app.get('/', (c) => {
             </div>
 
             <!-- Map and Facility List Container (Horizontal Layout) -->
-            <div class="flex flex-col lg:flex-row gap-6">
+            <div class="flex flex-col lg:flex-row gap-6 map-container">
                 <!-- Map Container (Left Side) -->
-                <div class="flex-1 bg-white rounded-lg shadow-lg p-4">
-                    <div id="map" class="rounded-lg" style="height: 800px; width: 100%;"></div>
+                <div class="flex-1 bg-white rounded-lg shadow-lg p-4 h-full">
+                    <div id="map" class="rounded-lg h-full w-full"></div>
                 </div>
 
                 <!-- Facility List (Right Side - Vertical Panel) -->
-                <div class="lg:w-72 bg-white rounded-lg shadow-lg p-5 flex flex-col" style="max-height: 848px;">
+                <div class="lg:w-72 bg-white rounded-lg shadow-lg p-5 flex flex-col h-full">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4 flex-shrink-0">
                         <i class="fas fa-list mr-2"></i>
                         登録施設一覧
@@ -1044,14 +1064,14 @@ app.get('/edit', requireAuth, (c) => {
             </div>
 
             <!-- Map and Facility List Container (Horizontal Layout) -->
-            <div class="flex flex-col lg:flex-row gap-6">
+            <div class="flex flex-col lg:flex-row gap-6 map-container">
                 <!-- Map Container (Left Side) -->
-                <div class="flex-1 bg-white rounded-lg shadow-lg p-4">
-                    <div id="map" class="rounded-lg" style="height: 800px; width: 100%;"></div>
+                <div class="flex-1 bg-white rounded-lg shadow-lg p-4 h-full">
+                    <div id="map" class="rounded-lg h-full w-full"></div>
                 </div>
 
                 <!-- Facility List (Right Side - Vertical Panel) -->
-                <div class="lg:w-72 bg-white rounded-lg shadow-lg p-5 flex flex-col" style="max-height: 848px;">
+                <div class="lg:w-72 bg-white rounded-lg shadow-lg p-5 flex flex-col h-full">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4 flex-shrink-0">
                         <i class="fas fa-list mr-2"></i>
                         登録施設一覧
