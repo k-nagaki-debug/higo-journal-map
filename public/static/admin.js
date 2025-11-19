@@ -787,6 +787,55 @@ window.showAddModal = showAddModal;
 window.closeModal = closeModal;
 window.editFacility = editFacility;
 window.deleteHospital = deleteHospital;
+// Export to Excel (CSV format)
+async function exportToExcel() {
+    try {
+        // Show loading state
+        const originalContent = event.target.innerHTML;
+        event.target.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>エクスポート中...';
+        event.target.disabled = true;
+        
+        // Fetch export data
+        const response = await axios.get('/api/hospitals/export', {
+            responseType: 'blob'
+        });
+        
+        // Create download link
+        const blob = new Blob([response.data], { type: 'text/csv; charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Generate filename with current date
+        const date = new Date().toISOString().split('T')[0];
+        link.download = `hospitals_export_${date}.csv`;
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        // Restore button state
+        event.target.innerHTML = originalContent;
+        event.target.disabled = false;
+        
+        // Show success message
+        alert('データのエクスポートが完了しました！');
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('エクスポートに失敗しました。もう一度お試しください。');
+        
+        // Restore button state
+        if (event && event.target) {
+            event.target.innerHTML = '<i class="fas fa-file-download mr-2"></i>エクスポート';
+            event.target.disabled = false;
+        }
+    }
+}
+
 window.viewOnMap = viewOnMap;
 window.applyFilters = applyFilters;
 window.removeImage = removeImage;
@@ -796,3 +845,4 @@ window.parseImportFile = parseImportFile;
 window.executeImport = executeImport;
 window.resetImport = resetImport;
 window.geocodeAddress = geocodeAddress;
+window.exportToExcel = exportToExcel;
