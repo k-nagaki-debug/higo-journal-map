@@ -961,7 +961,7 @@ app.get('/login', (c) => {
                     });
 
                     if (response.data.success) {
-                        window.location.href = '/edit';
+                        window.location.href = '/admin';
                     }
                 } catch (error) {
                     errorMessage.classList.remove('hidden');
