@@ -342,6 +342,7 @@ app.post('/api/hospitals/import', async (c) => {
     }
     
     let successCount = 0
+    let updateCount = 0
     let errorCount = 0
     const errors: any[] = []
     
@@ -362,28 +363,62 @@ app.post('/api/hospitals/import', async (c) => {
         const has_pet = hospital.has_pet === true || hospital.has_pet === 1 || hospital.has_pet === '1' ? 1 : 0
         const has_remote_reading = hospital.has_remote_reading === true || hospital.has_remote_reading === 1 || hospital.has_remote_reading === '1' ? 1 : 0
         
-        await c.env.DB.prepare(
-          `INSERT INTO hospitals (name, description, departments, latitude, longitude, address, phone, website, image_url, 
-                                  has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        ).bind(
-          hospital.name,
-          hospital.description || null,
-          hospital.departments || null,
-          hospital.latitude ? parseFloat(hospital.latitude) : null,
-          hospital.longitude ? parseFloat(hospital.longitude) : null,
-          hospital.address || null,
-          hospital.phone || null,
-          hospital.website || null,
-          hospital.image_url || null,
-          has_ct,
-          has_mri,
-          has_pet,
-          has_remote_reading,
-          hospital.remote_reading_provider || null
-        ).run()
+        // Check if hospital with same name and address already exists
+        const { results: existing } = await c.env.DB.prepare(
+          `SELECT id FROM hospitals WHERE name = ? AND address = ?`
+        ).bind(hospital.name, hospital.address || null).all()
         
-        successCount++
+        if (existing.length > 0) {
+          // Update existing hospital
+          await c.env.DB.prepare(
+            `UPDATE hospitals 
+             SET description = ?, departments = ?, latitude = ?, longitude = ?, 
+                 phone = ?, website = ?, image_url = ?, 
+                 has_ct = ?, has_mri = ?, has_pet = ?, has_remote_reading = ?, remote_reading_provider = ?,
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE id = ?`
+          ).bind(
+            hospital.description || null,
+            hospital.departments || null,
+            hospital.latitude ? parseFloat(hospital.latitude) : null,
+            hospital.longitude ? parseFloat(hospital.longitude) : null,
+            hospital.phone || null,
+            hospital.website || null,
+            hospital.image_url || null,
+            has_ct,
+            has_mri,
+            has_pet,
+            has_remote_reading,
+            hospital.remote_reading_provider || null,
+            existing[0].id
+          ).run()
+          
+          updateCount++
+        } else {
+          // Insert new hospital
+          await c.env.DB.prepare(
+            `INSERT INTO hospitals (name, description, departments, latitude, longitude, address, phone, website, image_url, 
+                                    has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          ).bind(
+            hospital.name,
+            hospital.description || null,
+            hospital.departments || null,
+            hospital.latitude ? parseFloat(hospital.latitude) : null,
+            hospital.longitude ? parseFloat(hospital.longitude) : null,
+            hospital.address || null,
+            hospital.phone || null,
+            hospital.website || null,
+            hospital.image_url || null,
+            has_ct,
+            has_mri,
+            has_pet,
+            has_remote_reading,
+            hospital.remote_reading_provider || null
+          ).run()
+          
+          successCount++
+        }
       } catch (error) {
         errorCount++
         errors.push({ row: i + 1, error: 'データベース登録エラー', detail: String(error) })
@@ -392,8 +427,9 @@ app.post('/api/hospitals/import', async (c) => {
     
     return c.json({
       success: true,
-      message: `インポート完了: ${successCount}件成功, ${errorCount}件失敗`,
+      message: `インポート完了: 新規${successCount}件, 更新${updateCount}件, 失敗${errorCount}件`,
       successCount,
+      updateCount,
       errorCount,
       errors: errors.length > 0 ? errors : undefined
     })
