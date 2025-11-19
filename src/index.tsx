@@ -446,7 +446,7 @@ app.get('/admin', requireAuth, (c) => {
                             <i class="fas fa-plus mr-2"></i>
                             新規登録
                         </button>
-                        <button onclick="exportToExcel()" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition">
+                        <button onclick="exportToExcel(event)" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition">
                             <i class="fas fa-file-download mr-2"></i>
                             エクスポート
                         </button>

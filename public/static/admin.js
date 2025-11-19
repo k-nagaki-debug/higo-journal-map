@@ -788,12 +788,14 @@ window.closeModal = closeModal;
 window.editFacility = editFacility;
 window.deleteHospital = deleteHospital;
 // Export to Excel (CSV format)
-async function exportToExcel() {
+async function exportToExcel(event) {
+    const button = event.currentTarget;
+    const originalContent = button.innerHTML;
+    
     try {
         // Show loading state
-        const originalContent = event.target.innerHTML;
-        event.target.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>エクスポート中...';
-        event.target.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>エクスポート中...';
+        button.disabled = true;
         
         // Fetch export data
         const response = await axios.get('/api/hospitals/export', {
@@ -818,21 +820,15 @@ async function exportToExcel() {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
         
-        // Restore button state
-        event.target.innerHTML = originalContent;
-        event.target.disabled = false;
-        
         // Show success message
         alert('データのエクスポートが完了しました！');
     } catch (error) {
         console.error('Export error:', error);
         alert('エクスポートに失敗しました。もう一度お試しください。');
-        
-        // Restore button state
-        if (event && event.target) {
-            event.target.innerHTML = '<i class="fas fa-file-download mr-2"></i>エクスポート';
-            event.target.disabled = false;
-        }
+    } finally {
+        // Restore button state (always executed)
+        button.innerHTML = originalContent;
+        button.disabled = false;
     }
 }
 
