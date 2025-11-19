@@ -599,7 +599,7 @@ app.get('/admin', requireAuth, (c) => {
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">ID</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">病院名</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">診療科目</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">遠隔読影サービス</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">住所</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">電話番号</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">操作</th>

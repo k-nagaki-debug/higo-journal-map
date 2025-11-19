@@ -107,8 +107,11 @@ function displayHospitals() {
     noData.classList.add('hidden');
     
     tbody.innerHTML = filteredHospitals.map(hospital => {
-        const categoryBadge = hospital.departments 
-            ? `<span class="status-badge bg-blue-100 text-blue-800">${hospital.departments}</span>`
+        // Remote reading service badge
+        const remoteReadingBadge = hospital.has_remote_reading
+            ? (hospital.remote_reading_provider 
+                ? `<span class="status-badge bg-purple-100 text-purple-800">${hospital.remote_reading_provider}</span>`
+                : `<span class="status-badge bg-green-100 text-green-800">対応</span>`)
             : '<span class="text-gray-400">-</span>';
         
         const formattedDate = new Date(hospital.created_at).toLocaleString('ja-JP', {
@@ -131,7 +134,7 @@ function displayHospitals() {
                         </div>
                     </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">${categoryBadge}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${remoteReadingBadge}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">
                     ${hospital.address ? `<div class="max-w-xs truncate">${hospital.address}</div>` : '<span class="text-gray-400">-</span>'}
                 </td>
