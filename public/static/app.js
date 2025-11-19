@@ -311,9 +311,9 @@ function addMarker(hospital) {
     // Determine marker icon
     let markerIcon;
     if (hospital.remote_reading_provider && hospital.remote_reading_provider.includes('ワイズ・リーディング')) {
-        // Special SVG icon for Y's READING hospitals
+        // Special PNG icon for Y's READING hospitals
         markerIcon = {
-            url: '/static/ys-reading-pin.svg',
+            url: '/static/ys-reading-pin.png',
             scaledSize: new google.maps.Size(40, 56),
             origin: new google.maps.Point(0, 0),
             anchor: new google.maps.Point(20, 56)
