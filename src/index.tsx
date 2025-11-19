@@ -98,6 +98,75 @@ app.get('/api/hospitals', async (c) => {
   }
 })
 
+// Export hospitals to CSV (Excel compatible with UTF-8 BOM)
+// IMPORTANT: This must come BEFORE /api/hospitals/:id to avoid route collision
+app.get('/api/hospitals/export', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(
+      'SELECT * FROM hospitals ORDER BY id ASC'
+    ).all()
+    
+    // CSV header with Japanese column names
+    const header = [
+      'ID',
+      '施設名',
+      '説明',
+      '診療科目',
+      '緯度',
+      '経度',
+      '住所',
+      '電話番号',
+      'ウェブサイト',
+      '画像URL',
+      'CT',
+      'MRI',
+      'PET',
+      '遠隔読影サービス',
+      '遠隔読影事業者',
+      '作成日時',
+      '更新日時'
+    ].join(',')
+    
+    // Convert data to CSV rows
+    const rows = results.map((hospital: any) => {
+      return [
+        hospital.id,
+        `"${(hospital.name || '').replace(/"/g, '""')}"`,
+        `"${(hospital.description || '').replace(/"/g, '""')}"`,
+        `"${(hospital.departments || '').replace(/"/g, '""')}"`,
+        hospital.latitude || '',
+        hospital.longitude || '',
+        `"${(hospital.address || '').replace(/"/g, '""')}"`,
+        `"${(hospital.phone || '').replace(/"/g, '""')}"`,
+        `"${(hospital.website || '').replace(/"/g, '""')}"`,
+        `"${(hospital.image_url || '').replace(/"/g, '""')}"`,
+        hospital.has_ct ? '有' : '無',
+        hospital.has_mri ? '有' : '無',
+        hospital.has_pet ? '有' : '無',
+        hospital.has_remote_reading ? '有' : '無',
+        `"${(hospital.remote_reading_provider || '').replace(/"/g, '""')}"`,
+        hospital.created_at || '',
+        hospital.updated_at || ''
+      ].join(',')
+    })
+    
+    // Add UTF-8 BOM for proper Excel display of Japanese characters
+    const bom = '\uFEFF'
+    const csv = bom + [header, ...rows].join('\n')
+    
+    // Return CSV with proper headers
+    return new Response(csv, {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="hospitals_export_${new Date().toISOString().split('T')[0]}.csv"`
+      }
+    })
+  } catch (error) {
+    console.error('Export error:', error)
+    return c.json({ success: false, error: 'Failed to export hospitals' }, 500)
+  }
+})
+
 // Get single hospital by ID
 app.get('/api/hospitals/:id', async (c) => {
   const id = c.req.param('id')
@@ -260,74 +329,6 @@ app.delete('/api/hospitals/:id', async (c) => {
     return c.json({ success: true, message: 'Hospital deleted' })
   } catch (error) {
     return c.json({ success: false, error: 'Failed to delete hospital' }, 500)
-  }
-})
-
-// Export hospitals to CSV (Excel compatible with UTF-8 BOM)
-app.get('/api/hospitals/export', async (c) => {
-  try {
-    const { results } = await c.env.DB.prepare(
-      'SELECT * FROM hospitals ORDER BY id ASC'
-    ).all()
-    
-    // CSV header with Japanese column names
-    const header = [
-      'ID',
-      '施設名',
-      '説明',
-      '診療科目',
-      '緯度',
-      '経度',
-      '住所',
-      '電話番号',
-      'ウェブサイト',
-      '画像URL',
-      'CT',
-      'MRI',
-      'PET',
-      '遠隔読影サービス',
-      '遠隔読影事業者',
-      '作成日時',
-      '更新日時'
-    ].join(',')
-    
-    // Convert data to CSV rows
-    const rows = results.map((hospital: any) => {
-      return [
-        hospital.id,
-        `"${(hospital.name || '').replace(/"/g, '""')}"`,
-        `"${(hospital.description || '').replace(/"/g, '""')}"`,
-        `"${(hospital.departments || '').replace(/"/g, '""')}"`,
-        hospital.latitude || '',
-        hospital.longitude || '',
-        `"${(hospital.address || '').replace(/"/g, '""')}"`,
-        `"${(hospital.phone || '').replace(/"/g, '""')}"`,
-        `"${(hospital.website || '').replace(/"/g, '""')}"`,
-        `"${(hospital.image_url || '').replace(/"/g, '""')}"`,
-        hospital.has_ct ? '有' : '無',
-        hospital.has_mri ? '有' : '無',
-        hospital.has_pet ? '有' : '無',
-        hospital.has_remote_reading ? '有' : '無',
-        `"${(hospital.remote_reading_provider || '').replace(/"/g, '""')}"`,
-        hospital.created_at || '',
-        hospital.updated_at || ''
-      ].join(',')
-    })
-    
-    // Add UTF-8 BOM for proper Excel display of Japanese characters
-    const bom = '\uFEFF'
-    const csv = bom + [header, ...rows].join('\n')
-    
-    // Return CSV with proper headers
-    return new Response(csv, {
-      headers: {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="hospitals_export_${new Date().toISOString().split('T')[0]}.csv"`
-      }
-    })
-  } catch (error) {
-    console.error('Export error:', error)
-    return c.json({ success: false, error: 'Failed to export hospitals' }, 500)
   }
 })
 
