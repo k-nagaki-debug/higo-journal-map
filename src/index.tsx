@@ -359,6 +359,31 @@ app.delete('/api/hospitals', async (c) => {
   }
 })
 
+// Apply migration (temporary endpoint for adding system type columns)
+app.post('/api/migrate/add-system-types', async (c) => {
+  try {
+    // Add has_onpremise column
+    await c.env.DB.prepare('ALTER TABLE hospitals ADD COLUMN has_onpremise BOOLEAN DEFAULT 0').run()
+    
+    // Add has_cloud column
+    await c.env.DB.prepare('ALTER TABLE hospitals ADD COLUMN has_cloud BOOLEAN DEFAULT 0').run()
+    
+    // Add has_ichigo column
+    await c.env.DB.prepare('ALTER TABLE hospitals ADD COLUMN has_ichigo BOOLEAN DEFAULT 0').run()
+    
+    return c.json({ 
+      success: true, 
+      message: 'Migration applied successfully'
+    })
+  } catch (error: any) {
+    return c.json({ 
+      success: false, 
+      error: 'Failed to apply migration',
+      details: error.message 
+    }, 500)
+  }
+})
+
 // Bulk import hospitals from CSV/Excel
 app.post('/api/hospitals/import', async (c) => {
   try {
