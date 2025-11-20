@@ -1132,7 +1132,8 @@ app.get('/', (c) => {
         <div class="px-4 py-8">
             <div class="container mx-auto mb-8 flex justify-between items-center">
                 <div>
-                    <h1 class="text-4xl font-bold"><img src="/static/ys-reading-logo.png" alt="Y's READING" class="h-12 inline-block"></h1>
+                    <h1 class="text-2xl font-bold text-blue-600 mb-1"><img src="/static/ys-reading-logo.png" alt="Y's READING" class="h-8 inline-block"></h1>
+                    <p class="text-sm text-gray-600 mt-1">Hospital Management Dashboard</p>
                 </div>
                 <div id="header-buttons">
                     <!-- Login link will be shown here for non-authenticated users -->
