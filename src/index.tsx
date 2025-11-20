@@ -1147,29 +1147,29 @@ app.get('/', (c) => {
                 </div>
 
                 <!-- Facility List (Bottom on mobile, Right on desktop) -->
-                <div class="w-full lg:w-72 bg-white rounded-lg shadow-lg p-5 flex flex-col mobile-list lg:h-full">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex-shrink-0">
+                <div class="w-full lg:w-72 bg-white rounded-lg shadow-lg p-3 flex flex-col mobile-list lg:h-full">
+                    <h2 class="text-lg font-bold text-gray-800 mb-3 flex-shrink-0">
                         <i class="fas fa-list mr-2"></i>
                         登録施設一覧
                     </h2>
                     
                     <!-- Search and Filter -->
-                    <div class="mb-4 space-y-3 flex-shrink-0">
+                    <div class="mb-3 space-y-2 flex-shrink-0">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">施設名</label>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">施設名</label>
                             <input type="text" id="map-search-input" placeholder="施設名で検索..." 
-                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                   class="w-full px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">遠隔読影サービス</label>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">遠隔読影サービス</label>
                             <input type="text" id="map-remote-reading-filter" placeholder="事業者名で検索..." 
-                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 flow:ring-blue-500">
+                                   class="w-full px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                     
                     <!-- Scrollable Facility List -->
                     <div class="flex-1 overflow-y-auto pr-2">
-                        <div id="hospital-list" class="space-y-3">
+                        <div id="hospital-list" class="space-y-2">
                             <!-- Hospitals will be loaded here -->
                         </div>
                     </div>
@@ -1323,7 +1323,7 @@ app.get('/edit', requireAuth, (c) => {
                     
                     <!-- Scrollable Facility List -->
                     <div class="flex-1 overflow-y-auto pr-2">
-                        <div id="hospital-list" class="space-y-3">
+                        <div id="hospital-list" class="space-y-2">
                             <!-- Hospitals will be loaded here -->
                         </div>
                     </div>

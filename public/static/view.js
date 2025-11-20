@@ -246,21 +246,21 @@ function displayHospitalList(hospitals) {
         const cursorClass = hasCoords ? 'cursor-pointer hover:shadow-md' : '';
         
         return `
-        <div class="facility-card bg-white rounded-lg shadow p-4 ${cursorClass}" ${onclickAttr}>
+        <div class="facility-card bg-white rounded-lg shadow p-2 ${cursorClass}" ${onclickAttr}>
             ${hospital.image_url ? `
-                <img src="${hospital.image_url}" alt="${hospital.name}" class="w-full h-32 object-cover rounded mb-3">
+                <img src="${hospital.image_url}" alt="${hospital.name}" class="w-full h-20 object-cover rounded mb-2">
             ` : ''}
-            <h3 class="text-lg font-bold text-gray-800 mb-2">
+            <h3 class="text-sm font-bold text-gray-800 mb-1">
                 ${hospital.name}
             </h3>
             ${hospital.departments ? `
-                <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full mb-2 bg-blue-100 text-blue-800">
+                <span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-full mb-1 bg-blue-100 text-blue-800">
                     ${hospital.departments.split(',')[0]}${hospital.departments.split(',').length > 1 ? ' 他' : ''}
                 </span>
             ` : ''}
-            ${!hasCoords ? `<span class="inline-block px-2 py-1 text-xs font-semibold rounded-full mb-2 bg-gray-100 text-gray-600"><i class="fas fa-map-marker-slash"></i> 位置情報なし</span>` : ''}
-            ${hospital.description ? `<p class="text-sm text-gray-600 mb-2 line-clamp-2">${hospital.description}</p>` : ''}
-            ${hospital.business_hours ? `<p class="text-xs text-gray-500 mb-1"><i class="fas fa-clock mr-1"></i>${hospital.business_hours}</p>` : ''}
+            ${!hasCoords ? `<span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-full mb-1 bg-gray-100 text-gray-600"><i class="fas fa-map-marker-slash"></i> 位置情報なし</span>` : ''}
+            ${hospital.description ? `<p class="text-xs text-gray-600 mb-1 line-clamp-2">${hospital.description}</p>` : ''}
+            ${hospital.business_hours ? `<p class="text-xs text-gray-500 mb-0.5"><i class="fas fa-clock mr-1"></i>${hospital.business_hours}</p>` : ''}
             ${hospital.address ? `<p class="text-xs text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i>${hospital.address}</p>` : ''}
         </div>
         `;
