@@ -332,6 +332,21 @@ app.delete('/api/hospitals/:id', async (c) => {
   }
 })
 
+// Delete all hospitals (admin only)
+app.delete('/api/hospitals', async (c) => {
+  try {
+    const result = await c.env.DB.prepare('DELETE FROM hospitals').run()
+    
+    return c.json({ 
+      success: true, 
+      message: 'All hospitals deleted',
+      deletedCount: result.meta.changes 
+    })
+  } catch (error) {
+    return c.json({ success: false, error: 'Failed to delete hospitals' }, 500)
+  }
+})
+
 // Bulk import hospitals from CSV/Excel
 app.post('/api/hospitals/import', async (c) => {
   try {
