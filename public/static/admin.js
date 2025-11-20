@@ -218,6 +218,9 @@ function showAddModal() {
     document.getElementById('hospital-has-pet').checked = false;
     document.getElementById('hospital-has-remote-reading').checked = false;
     document.getElementById('hospital-remote-reading-provider').value = '';
+    document.getElementById('hospital-has-onpremise').checked = false;
+    document.getElementById('hospital-has-cloud').checked = false;
+    document.getElementById('hospital-has-ichigo').checked = false;
     
     modal.classList.remove('hidden');
 }
@@ -259,6 +262,9 @@ async function editFacility(hospitalId) {
             document.getElementById('hospital-has-pet').checked = hospital.has_pet === 1 || hospital.has_pet === true;
             document.getElementById('hospital-has-remote-reading').checked = hospital.has_remote_reading === 1 || hospital.has_remote_reading === true;
             document.getElementById('hospital-remote-reading-provider').value = hospital.remote_reading_provider || '';
+            document.getElementById('hospital-has-onpremise').checked = hospital.has_onpremise === 1 || hospital.has_onpremise === true;
+            document.getElementById('hospital-has-cloud').checked = hospital.has_cloud === 1 || hospital.has_cloud === true;
+            document.getElementById('hospital-has-ichigo').checked = hospital.has_ichigo === 1 || hospital.has_ichigo === true;
             
             // Reset image preview
             document.getElementById('image-preview').classList.add('hidden');
@@ -342,7 +348,10 @@ async function handleFormSubmit(e) {
             has_mri: document.getElementById('hospital-has-mri').checked ? 1 : 0,
             has_pet: document.getElementById('hospital-has-pet').checked ? 1 : 0,
             has_remote_reading: document.getElementById('hospital-has-remote-reading').checked ? 1 : 0,
-            remote_reading_provider: document.getElementById('hospital-remote-reading-provider').value || null
+            remote_reading_provider: document.getElementById('hospital-remote-reading-provider').value || null,
+            has_onpremise: document.getElementById('hospital-has-onpremise').checked ? 1 : 0,
+            has_cloud: document.getElementById('hospital-has-cloud').checked ? 1 : 0,
+            has_ichigo: document.getElementById('hospital-has-ichigo').checked ? 1 : 0
         };
         
         console.log('Hospital data:', hospitalData);
@@ -569,6 +578,9 @@ function parseCSV(text) {
             'PET': 'has_pet',
             '遠隔読影サービス': 'has_remote_reading',
             '遠隔読影事業者': 'remote_reading_provider',
+            'オンプレ': 'has_onpremise',
+            'クラウド': 'has_cloud',
+            '医知悟': 'has_ichigo',
             '作成日時': 'created_at',
             '更新日時': 'updated_at'
         };
@@ -587,7 +599,7 @@ function parseCSV(text) {
             let value = values[index] || '';
             
             // Convert '有'/'無' to boolean
-            if (['has_ct', 'has_mri', 'has_pet', 'has_remote_reading'].includes(header)) {
+            if (['has_ct', 'has_mri', 'has_pet', 'has_remote_reading', 'has_onpremise', 'has_cloud', 'has_ichigo'].includes(header)) {
                 value = value === '有' ? true : (value === '無' ? false : value);
             }
             

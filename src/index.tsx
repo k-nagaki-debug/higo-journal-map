@@ -123,6 +123,9 @@ app.get('/api/hospitals/export', async (c) => {
       'PET',
       '遠隔読影サービス',
       '遠隔読影事業者',
+      'オンプレ',
+      'クラウド',
+      '医知悟',
       '作成日時',
       '更新日時'
     ].join(',')
@@ -145,6 +148,9 @@ app.get('/api/hospitals/export', async (c) => {
         hospital.has_pet ? '有' : '無',
         hospital.has_remote_reading ? '有' : '無',
         `"${(hospital.remote_reading_provider || '').replace(/"/g, '""')}"`,
+        hospital.has_onpremise ? '有' : '無',
+        hospital.has_cloud ? '有' : '無',
+        hospital.has_ichigo ? '有' : '無',
         hospital.created_at || '',
         hospital.updated_at || ''
       ].join(',')
@@ -259,7 +265,8 @@ app.post('/api/hospitals', async (c) => {
   try {
     const body = await c.req.json()
     const { name, description, departments, latitude, longitude, address, phone, website, image_url, 
-            has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider } = body
+            has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider,
+            has_onpremise, has_cloud, has_ichigo } = body
     
     if (!name) {
       return c.json({ success: false, error: 'Name is required' }, 400)
@@ -267,11 +274,13 @@ app.post('/api/hospitals', async (c) => {
     
     const result = await c.env.DB.prepare(
       `INSERT INTO hospitals (name, description, departments, latitude, longitude, address, phone, website, image_url, 
-                              has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                              has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider,
+                              has_onpremise, has_cloud, has_ichigo)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(name, description || null, departments || null, latitude, longitude, address || null, phone || null, 
            website || null, image_url || null, has_ct || 0, has_mri || 0, has_pet || 0, 
-           has_remote_reading || 0, remote_reading_provider || null).run()
+           has_remote_reading || 0, remote_reading_provider || null,
+           has_onpremise || 0, has_cloud || 0, has_ichigo || 0).run()
     
     return c.json({ 
       success: true, 
@@ -290,18 +299,21 @@ app.put('/api/hospitals/:id', async (c) => {
   try {
     const body = await c.req.json()
     const { name, description, departments, latitude, longitude, address, phone, website, image_url, 
-            has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider } = body
+            has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider,
+            has_onpremise, has_cloud, has_ichigo } = body
     
     const result = await c.env.DB.prepare(
       `UPDATE hospitals 
        SET name = ?, description = ?, departments = ?, latitude = ?, longitude = ?, 
            address = ?, phone = ?, website = ?, image_url = ?, 
-           has_ct = ?, has_mri = ?, has_pet = ?, has_remote_reading = ?, remote_reading_provider = ?, 
+           has_ct = ?, has_mri = ?, has_pet = ?, has_remote_reading = ?, remote_reading_provider = ?,
+           has_onpremise = ?, has_cloud = ?, has_ichigo = ?,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`
     ).bind(name, description || null, departments || null, latitude, longitude, address || null, phone || null, 
            website || null, image_url || null, has_ct || 0, has_mri || 0, has_pet || 0, 
-           has_remote_reading || 0, remote_reading_provider || null, id).run()
+           has_remote_reading || 0, remote_reading_provider || null,
+           has_onpremise || 0, has_cloud || 0, has_ichigo || 0, id).run()
     
     if (result.meta.changes === 0) {
       return c.json({ success: false, error: 'Hospital not found' }, 404)
@@ -377,6 +389,9 @@ app.post('/api/hospitals/import', async (c) => {
         const has_mri = hospital.has_mri === true || hospital.has_mri === 1 || hospital.has_mri === '1' ? 1 : 0
         const has_pet = hospital.has_pet === true || hospital.has_pet === 1 || hospital.has_pet === '1' ? 1 : 0
         const has_remote_reading = hospital.has_remote_reading === true || hospital.has_remote_reading === 1 || hospital.has_remote_reading === '1' ? 1 : 0
+        const has_onpremise = hospital.has_onpremise === true || hospital.has_onpremise === 1 || hospital.has_onpremise === '1' ? 1 : 0
+        const has_cloud = hospital.has_cloud === true || hospital.has_cloud === 1 || hospital.has_cloud === '1' ? 1 : 0
+        const has_ichigo = hospital.has_ichigo === true || hospital.has_ichigo === 1 || hospital.has_ichigo === '1' ? 1 : 0
         
         // Check if hospital with same name and address already exists
         const { results: existing } = await c.env.DB.prepare(
@@ -390,6 +405,7 @@ app.post('/api/hospitals/import', async (c) => {
              SET description = ?, departments = ?, latitude = ?, longitude = ?, 
                  phone = ?, website = ?, image_url = ?, 
                  has_ct = ?, has_mri = ?, has_pet = ?, has_remote_reading = ?, remote_reading_provider = ?,
+                 has_onpremise = ?, has_cloud = ?, has_ichigo = ?,
                  updated_at = CURRENT_TIMESTAMP
              WHERE id = ?`
           ).bind(
@@ -405,6 +421,9 @@ app.post('/api/hospitals/import', async (c) => {
             has_pet,
             has_remote_reading,
             hospital.remote_reading_provider || null,
+            has_onpremise,
+            has_cloud,
+            has_ichigo,
             existing[0].id
           ).run()
           
@@ -413,8 +432,9 @@ app.post('/api/hospitals/import', async (c) => {
           // Insert new hospital
           await c.env.DB.prepare(
             `INSERT INTO hospitals (name, description, departments, latitude, longitude, address, phone, website, image_url, 
-                                    has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                                    has_ct, has_mri, has_pet, has_remote_reading, remote_reading_provider,
+                                    has_onpremise, has_cloud, has_ichigo)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
           ).bind(
             hospital.name,
             hospital.description || null,
@@ -429,7 +449,10 @@ app.post('/api/hospitals/import', async (c) => {
             has_mri,
             has_pet,
             has_remote_reading,
-            hospital.remote_reading_provider || null
+            hospital.remote_reading_provider || null,
+            has_onpremise,
+            has_cloud,
+            has_ichigo
           ).run()
           
           successCount++
@@ -703,6 +726,24 @@ app.get('/admin', requireAuth, (c) => {
                         </label>
                         <input type="text" id="hospital-remote-reading-provider" placeholder="遠隔読影事業者名"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-bold mb-2">システム構成</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-onpremise" class="mr-2">
+                                <span class="text-gray-700">オンプレ</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-cloud" class="mr-2">
+                                <span class="text-gray-700">クラウド</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-ichigo" class="mr-2">
+                                <span class="text-gray-700">医知悟</span>
+                            </label>
+                        </div>
                     </div>
                     
                     <div class="mb-4">
@@ -1313,6 +1354,24 @@ app.get('/edit', requireAuth, (c) => {
                         </label>
                         <input type="text" id="hospital-remote-reading-provider" placeholder="遠隔読影事業者名"
                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-bold mb-2">システム構成</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-onpremise" class="mr-2">
+                                <span class="text-gray-700">オンプレ</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-cloud" class="mr-2">
+                                <span class="text-gray-700">クラウド</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="hospital-has-ichigo" class="mr-2">
+                                <span class="text-gray-700">医知悟</span>
+                            </label>
+                        </div>
                     </div>
                     
                     <div class="mb-4">
