@@ -1014,21 +1014,6 @@ app.get('/login', (c) => {
                             ログイン
                         </button>
                     </form>
-
-                    <div class="mt-6 text-center">
-                        <a href="/" class="text-blue-600 hover:text-blue-800 transition">
-                            <i class="fas fa-eye mr-2"></i>
-                            ログインせずに閲覧する
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Info -->
-                <div class="mt-6 text-center text-sm text-gray-600">
-                    <p>デフォルト認証情報:</p>
-                    <p class="font-mono bg-white px-3 py-2 rounded mt-2">
-                        ユーザー名: admin / パスワード: hospital2025
-                    </p>
                 </div>
             </div>
         </div>
