@@ -1052,7 +1052,7 @@ app.get('/login', (c) => {
                     });
 
                     if (response.data.success) {
-                        window.location.href = '/admin';
+                        window.location.href = '/';
                     }
                 } catch (error) {
                     errorMessage.classList.remove('hidden');
@@ -1065,8 +1065,8 @@ app.get('/login', (c) => {
   `)
 })
 
-// Top page (public read-only map)
-app.get('/', (c) => {
+// Top page (requires authentication)
+app.get('/', requireAuth, (c) => {
   return c.html(`
     <!DOCTYPE html>
     <html lang="ja">
@@ -1218,7 +1218,7 @@ app.get('/', (c) => {
             async function logout() {
                 try {
                     await axios.post('/api/auth/logout');
-                    window.location.reload();
+                    window.location.href = '/login';
                 } catch (error) {
                     console.error('Logout failed:', error);
                 }
