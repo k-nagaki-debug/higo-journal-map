@@ -560,7 +560,7 @@ app.get('/admin', requireAuth, (c) => {
     <body class="bg-gray-50">
         <!-- Header -->
         <header class="bg-white shadow-sm border-b">
-            <div class="container mx-auto px-4 py-4">
+            <div class="px-4 py-4">
                 <div class="flex justify-between items-center">
                     <div>
                         <h1 class="text-2xl font-bold text-blue-600 mb-1"><img src="/static/ys-reading-logo.png" alt="Y's READING" class="h-8 inline-block"></h1>
@@ -592,7 +592,7 @@ app.get('/admin', requireAuth, (c) => {
         </header>
 
         <!-- Main Content -->
-        <main class="container mx-auto px-4 py-8">
+        <main class="px-4 py-8">
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div class="bg-white rounded-lg shadow p-6">
@@ -1115,7 +1115,7 @@ app.get('/', requireAuth, (c) => {
     </head>
     <body class="bg-gray-50">
         <div class="px-4 py-8">
-            <div class="container mx-auto mb-8 flex justify-between items-center">
+            <div class="mb-8 flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-blue-600 mb-1"><img src="/static/ys-reading-logo.png" alt="Y's READING" class="h-8 inline-block"></h1>
                     <p class="text-sm text-gray-600 mt-1">Hospital Management Dashboard</p>
